@@ -72,8 +72,8 @@ export default async function Jelentkezok({ searchParams }) {
           <span className="filter-label">Forrás</span>
           <select name="source" defaultValue={source} className="field py-2">
             <option value="">Mind</option>
-            <option value="web">Web</option>
-            <option value="admin">Meghívott</option>
+            <option value="web">Weboldal</option>
+            <option value="admin">Egyénileg felvett</option>
           </select>
         </label>
         <button className="btn-primary text-sm px-5 py-2.5">Szűrés</button>
