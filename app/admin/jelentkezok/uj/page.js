@@ -1,13 +1,13 @@
 import Link from "next/link";
 import GuestForm from "@/components/admin/GuestForm";
 import { loadAdminData } from "@/lib/admin-data";
-import { supabaseAdmin } from "@/lib/supabase-admin";
+import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 export const dynamic = "force-dynamic";
 
 export default async function UjVendeg() {
   const [{ data: types, error }, { hallStats }] = await Promise.all([
-    supabaseAdmin.from("ticket_types").select("id, hall_id, label, price, is_public, sort").order("sort"),
+    getSupabaseAdmin().from("ticket_types").select("id, hall_id, label, price, is_public, sort").order("sort"),
     loadAdminData(),
   ]);
   if (error) throw new Error(error.message);

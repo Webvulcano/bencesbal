@@ -1,9 +1,9 @@
 "use server";
 import { revalidatePath } from "next/cache";
-import { supabaseAdmin } from "@/lib/supabase-admin";
+import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
 async function run(fn, ref) {
-  const { error } = await supabaseAdmin.rpc(fn, { p_ref: ref });
+  const { error } = await getSupabaseAdmin().rpc(fn, { p_ref: ref });
   if (error) throw new Error(error.message);
   revalidatePath("/admin", "layout");
 }
@@ -25,7 +25,7 @@ const GUEST_ERRORS = {
 };
 
 export async function createGuest(payload) {
-  const { data, error } = await supabaseAdmin.rpc("admin_create_registration", { payload });
+  const { data, error } = await getSupabaseAdmin().rpc("admin_create_registration", { payload });
   if (error) {
     const [code, arg] = error.message.split(":");
     if (code === "SOLD_OUT") return { error: `Nincs elég szabad hely (${arg === "disz" ? "Díszterem" : "Különterem"}).` };
@@ -37,7 +37,7 @@ export async function createGuest(payload) {
 }
 
 export async function setPrinted(refs, printed) {
-  const { error } = await supabaseAdmin.rpc("set_printed", { p_refs: refs, p_printed: printed });
+  const { error } = await getSupabaseAdmin().rpc("set_printed", { p_refs: refs, p_printed: printed });
   if (error) throw new Error(error.message);
   revalidatePath("/admin/postazas");
 }
