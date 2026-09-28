@@ -307,15 +307,22 @@ export default function JelentkezesFlow() {
                     </button>
                   </div>
                 )}
-                <input
-                  id="friendCode"
-                  className="field font-mono tracking-[2px] uppercase max-w-[200px]"
-                  placeholder={`${REF_PREFIX}-1234`}
-                  autoComplete="off"
-                  aria-invalid={bad("friendCode")}
-                  value={f.friendCode}
-                  onChange={(e) => set("friendCode", normalizeCode(e.target.value))}
-                />
+                <div className="flex items-stretch gap-2">
+                  <span aria-hidden className="grid place-items-center px-3 rounded-[2px] bg-[#f1f1f1] border border-line text-muted font-mono font-bold tracking-[2px] select-none">
+                    {REF_PREFIX}-
+                  </span>
+                  <input
+                    id="friendCode"
+                    className="field font-mono font-bold tracking-[4px] w-[110px]"
+                    placeholder="1234"
+                    inputMode="numeric"
+                    autoComplete="off"
+                    aria-label={`Barátkód, ${REF_PREFIX}- utáni 4 számjegy`}
+                    aria-invalid={bad("friendCode")}
+                    value={f.friendCode.slice(REF_PREFIX.length + 1)}
+                    onChange={(e) => set("friendCode", normalizeCode(e.target.value))}
+                  />
+                </div>
                 <span className="block text-[12.8px] font-semibold text-muted mt-1.5">Egy barátod közlemény-kódja — így egy asztalhoz ültetünk.</span>
                 {errors.friendCode && <span className="err">{errors.friendCode}</span>}
               </div>
