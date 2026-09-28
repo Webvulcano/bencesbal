@@ -1,3 +1,4 @@
+import PostalTable from "@/components/admin/PostalTable";
 import { loadAdminData } from "@/lib/admin-data";
 
 export const dynamic = "force-dynamic";
@@ -42,42 +43,16 @@ export default async function Postazas() {
       {wants.length === 0 ? (
         <p className="text-muted text-center py-16 bg-white border border-line/70 rounded-lg">Még senki nem kért papírjegyet.</p>
       ) : (
-        <div className="bg-white border border-line/70 rounded-lg overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="text-left text-xs text-muted uppercase tracking-wide border-b border-line/60">
-              <tr>
-                <th className="px-4 py-2.5 font-semibold">Címzett</th>
-                <th className="px-4 py-2.5 font-semibold">Cím</th>
-                <th className="px-4 py-2.5 font-semibold">Jegyszámok</th>
-                <th className="px-4 py-2.5 font-semibold text-right"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {[...ready, ...waiting].map((r) => (
-                <tr key={r.ref} className={`border-t border-line/40 ${r.status === "pending" ? "text-muted" : ""}`}>
-                  <td className="px-4 py-2.5">
-                    <p className="font-bold">{r.contact.name}</p>
-                    <p className="font-mono text-xs">{r.ref}</p>
-                  </td>
-                  <td className="px-4 py-2.5">{addr(r.address)}</td>
-                  <td className="px-4 py-2.5 font-mono tabular-nums">
-                    {r.status === "paid" ? r.members.map((m) => m.ticketNo).join(", ") : "—"}
-                    <span className="block font-sans text-xs text-muted">{r.members.length} db</span>
-                  </td>
-                  <td className="px-4 py-2.5 text-right whitespace-nowrap">
-                    {r.status === "paid" ? (
-                      <a href={`/admin/postazas/pdf?ref=${encodeURIComponent(r.ref)}`} target="_blank" rel="noopener" className="rounded-md border border-navy-2 text-navy-2 font-bold text-sm px-3.5 py-1.5 hover:bg-gold-soft">
-                        PDF
-                      </a>
-                    ) : (
-                      <span className="text-xs border border-gold rounded-full px-2.5 py-0.5 bg-gold-soft text-navy-2 font-bold">még nem fizetett</span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <PostalTable
+          rows={[...ready, ...waiting].map((r) => ({
+            ref: r.ref,
+            status: r.status,
+            name: r.contact.name,
+            address: addr(r.address),
+            count: r.members.length,
+            ticketNos: r.members.map((m) => String(m.ticketNo ?? "")).filter(Boolean),
+          }))}
+        />
       )}
     </>
   );
