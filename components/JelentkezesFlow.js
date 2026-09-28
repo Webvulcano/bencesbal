@@ -475,9 +475,9 @@ export default function JelentkezesFlow() {
 
           {step === "veglegesites" && (
             <>
-              <dl className="text-[15px] divide-y divide-line/60 border-y border-line/60 mb-5">
+              <dl className="text-[15px] divide-y divide-line/60 border-y border-line/60 mb-5 max-h-[calc(100dvh-400px)] overflow-y-auto overscroll-contain pr-1">
                 {[
-                  ["Jegy", lines.join(", ")],
+                  ["Jegy", lines.join("\n")],
                   ["Kapcsolattartó", `${f.contact.name}\n${f.contact.email}\n${f.contact.phone}`],
                   ["Cím", `${f.address.zip} ${f.address.city}, ${f.address.street} ${f.address.no}${f.address.floor ? ", " + f.address.floor : ""}`],
                   ...(f.friendCodes.some(Boolean) ? [["Barátkód", f.friendCodes.filter(Boolean).join(", ")]] : []),
@@ -487,6 +487,24 @@ export default function JelentkezesFlow() {
                     <dd className="font-semibold break-words whitespace-pre-line">{v}</dd>
                   </div>
                 ))}
+                {count > 0 && (
+                  <div className="grid grid-cols-[110px_1fr] gap-3 py-2">
+                    <dt className="text-muted">Résztvevők</dt>
+                    <dd className="space-y-1.5">
+                      {[f.contact, ...f.companions].map((c, i) => (
+                        <div key={i} className="leading-tight">
+                          <span className="block font-semibold break-words">
+                            {c.name}
+                            {i === 0 && <span className="font-normal text-muted text-[13px]"> (kapcsolattartó)</span>}
+                          </span>
+                          <span className="block text-[13px] text-muted break-words">
+                            {c.email} · {seats[i]?.label}
+                          </span>
+                        </div>
+                      ))}
+                    </dd>
+                  </div>
+                )}
               </dl>
               <div className="space-y-3.5">
                 <Check checked={f.paperTicket} onChange={(e) => set("paperTicket", e.target.checked)}>
