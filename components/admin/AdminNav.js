@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 const ITEMS = [
   { href: "/admin", label: "Áttekintés", icon: "◧" },
   { href: "/admin/jelentkezok", label: "Jelentkezők", icon: "☰" },
+  { href: "/admin/postazas", label: "Postázás", icon: "✉" },
   { href: "/admin/export", label: "Excel export", icon: "⤓" },
 ];
 
