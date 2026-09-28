@@ -110,6 +110,12 @@ function TicketCard({ t, qty, max, onQty }) {
   );
 }
 
+function TicketTag({ t }) {
+  if (!t) return null;
+  const tier = t.id.endsWith("_arany") ? "bg-gold text-navy" : t.id.endsWith("_ezust") ? "bg-[#e4e7ee] text-navy-2" : "bg-navy-2 text-white";
+  return <span className={`inline-block text-[12px] font-bold rounded px-2 py-0.5 whitespace-nowrap ${tier}`}>{t.label}</span>;
+}
+
 export default function JelentkezesFlow() {
   const [stepIdx, setStepIdx] = useState(0);
   const [hall, setHall] = useState("disz");
@@ -121,6 +127,7 @@ export default function JelentkezesFlow() {
 
   const count = Object.values(f.qty).reduce((a, b) => a + b, 0);
   const total = PUBLIC_TYPES.reduce((sum, t) => sum + (f.qty[t.id] || 0) * t.price, 0);
+  const seats = PUBLIC_TYPES.flatMap((t) => Array(f.qty[t.id] || 0).fill(t));
   const lines = PUBLIC_TYPES.filter((t) => f.qty[t.id]).map((t) => `${f.qty[t.id]} × ${t.label}`);
 
   const steps = ["jegy", "letszam", "kapcsolat", "lakcim", "bences", ...(count > 1 ? ["tarsak"] : []), "veglegesites", "fizetes"];
@@ -423,19 +430,32 @@ export default function JelentkezesFlow() {
 
           {step === "tarsak" && (
             <>
-              <p className="text-muted text-sm mb-3">{f.companions.length} további résztvevő neve és emailje (ide küldjük a jegyeket).</p>
-              <div className="max-h-[calc(100dvh-300px)] overflow-y-auto overscroll-contain border border-line/70 rounded-md p-3 space-y-3">
+              <p className="text-muted text-sm mb-3">Add meg, kinek szól a többi jegy — a jegyet emailben küldjük nekik.</p>
+              <div className="max-h-[calc(100dvh-290px)] overflow-y-auto overscroll-contain border border-line/70 rounded-md divide-y divide-line/60">
+                <div className="flex gap-2.5 items-center px-3 py-2.5 bg-gold-soft/60">
+                  <span className="font-serif text-gold text-xl w-6 shrink-0">1.</span>
+                  <div className="flex-1 min-w-0 leading-tight">
+                    <span className="block font-bold truncate">{f.contact.name}</span>
+                    <span className="block text-[12px] text-muted">kapcsolattartó</span>
+                  </div>
+                  <TicketTag t={seats[0]} />
+                </div>
                 {f.companions.map((c, i) => (
-                  <div key={i} className="flex gap-2.5 items-start">
-                    <span className="font-serif text-gold text-xl w-6 pt-2 shrink-0">{i + 2}.</span>
-                    <div className="flex-1 grid sm:grid-cols-2 gap-2">
-                      <div>
-                        <input className="field" placeholder="Név" aria-invalid={bad(`c${i}n`)} value={c.name} onChange={(e) => set(`companions.${i}.name`, e.target.value)} />
-                        {errors[`c${i}n`] && <span className="err">{errors[`c${i}n`]}</span>}
+                  <div key={i} className="flex gap-2.5 items-start px-3 py-2.5">
+                    <span className="font-serif text-gold text-xl w-6 pt-1.5 shrink-0">{i + 2}.</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="mb-1.5">
+                        <TicketTag t={seats[i + 1]} />
                       </div>
-                      <div>
-                        <input className="field" type="email" placeholder="Email" aria-invalid={bad(`c${i}e`)} value={c.email} onChange={(e) => set(`companions.${i}.email`, e.target.value)} />
-                        {errors[`c${i}e`] && <span className="err">{errors[`c${i}e`]}</span>}
+                      <div className="grid sm:grid-cols-2 gap-2">
+                        <div>
+                          <input className="field" placeholder="Név" aria-invalid={bad(`c${i}n`)} value={c.name} onChange={(e) => set(`companions.${i}.name`, e.target.value)} />
+                          {errors[`c${i}n`] && <span className="err">{errors[`c${i}n`]}</span>}
+                        </div>
+                        <div>
+                          <input className="field" type="email" placeholder="Email" aria-invalid={bad(`c${i}e`)} value={c.email} onChange={(e) => set(`companions.${i}.email`, e.target.value)} />
+                          {errors[`c${i}e`] && <span className="err">{errors[`c${i}e`]}</span>}
+                        </div>
                       </div>
                     </div>
                   </div>
