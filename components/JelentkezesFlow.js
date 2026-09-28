@@ -7,15 +7,10 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const YEARS = Array.from({ length: 2026 - 1930 + 1 }, (_, i) => String(2026 - i));
 const PUBLIC_TYPES = TICKET_TYPES.filter((t) => !t.adminOnly);
 const REQUIRES_LABEL = { oregdiak: "csak öregdiákoknak", munkatars: "csak munkatársaknak" };
-const CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-const CODE_RE = /^[A-Z0-9]{3}-[A-Z0-9]{3}$/;
-const randomCode = () => {
-  const c = () => CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)];
-  return `${c()}${c()}${c()}-${c()}${c()}${c()}`;
-};
+const CODE_RE = new RegExp(`^${REF_PREFIX}-\\d{4}$`);
 const normalizeCode = (v) => {
-  const raw = v.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
-  return raw.length > 3 ? `${raw.slice(0, 3)}-${raw.slice(3)}` : raw;
+  const digits = v.replace(/\D/g, "").slice(0, 4);
+  return digits ? `${REF_PREFIX}-${digits}` : "";
 };
 
 const PRIVACY_URL = "https://jelentkezes.gyoribencesbal.hu/adatkezelesi.pdf";
@@ -114,7 +109,6 @@ export default function JelentkezesFlow() {
   const [f, setF] = useState(EMPTY);
   const [errors, setErrors] = useState({});
   const [ref, setRef] = useState("");
-  const [myCode, setMyCode] = useState("");
   const [copied, setCopied] = useState("");
   const [helpOpen, setHelpOpen] = useState(false);
 
@@ -147,7 +141,7 @@ export default function JelentkezesFlow() {
     if (step === "jegy" && !tt) e.ticket = "Válassz jegytípust";
     if (step === "letszam") {
       if (tt?.maxPeople && f.count > tt.maxPeople) e.count = `Ebből a jegyből legfeljebb ${tt.maxPeople} db vehető`;
-      if (f.friendCode && !CODE_RE.test(f.friendCode)) e.friendCode = "A barátkód 6 karakter, pl. K7M-Q2P";
+      if (f.friendCode && !CODE_RE.test(f.friendCode)) e.friendCode = `A barátkód formátuma: ${REF_PREFIX}-1234`;
     }
     if (step === "kapcsolat") {
       if (!f.contact.name.trim()) e.name = "Kötelező";
@@ -179,7 +173,6 @@ export default function JelentkezesFlow() {
     if (step === "veglegesites") {
       // TODO: mentés DB-be; most csak demo közlemény-kód
       setRef(`${REF_PREFIX}-${String(Math.floor(1000 + Math.random() * 9000))}`);
-      setMyCode(randomCode());
     }
     setStepIdx(stepIdx + 1);
   }
@@ -193,7 +186,6 @@ export default function JelentkezesFlow() {
     setF(EMPTY);
     setErrors({});
     setRef("");
-    setMyCode("");
     setCopied("");
     setHelpOpen(false);
     setStepIdx(0);
@@ -309,7 +301,7 @@ export default function JelentkezesFlow() {
                   <div role="tooltip" className="absolute z-20 left-0 right-0 top-8 bg-navy text-white text-[14px] leading-snug rounded-md p-3.5 shadow-lg border-l-4 border-gold">
                     <p className="font-bold text-gold mb-1">Mi az a barátkód?</p>
                     <p>Ezzel jelzed, hogy kikkel szeretnél <b>egy asztalhoz ülni</b> — akkor is, ha külön jelentkeztek.</p>
-                    <p className="mt-1.5">A jelentkezés végén <b>mindenki kap egy saját barátkódot</b>. Küldd el a barátaidnak, ők pedig írják be ide a sajátjuk jelentkezésekor. Ha te kaptál kódot valakitől, azt írd be.</p>
+                    <p className="mt-1.5">A barátkód <b>ugyanaz, mint az utalás közleménye</b> (pl. {REF_PREFIX}-1234), amit a jelentkezés végén mindenki megkap. Küldd el a barátaidnak, ők pedig írják be ide a sajátjuk jelentkezésekor. Ha te kaptál kódot valakitől, azt írd be.</p>
                     <button type="button" onClick={() => setHelpOpen(false)} className="mt-2 text-gold font-bold text-sm cursor-pointer hover:underline">
                       Értem
                     </button>
@@ -317,14 +309,14 @@ export default function JelentkezesFlow() {
                 )}
                 <input
                   id="friendCode"
-                  className="field font-mono tracking-[3px] uppercase max-w-[180px]"
-                  placeholder="K7M-Q2P"
+                  className="field font-mono tracking-[2px] uppercase max-w-[200px]"
+                  placeholder={`${REF_PREFIX}-1234`}
                   autoComplete="off"
                   aria-invalid={bad("friendCode")}
                   value={f.friendCode}
                   onChange={(e) => set("friendCode", normalizeCode(e.target.value))}
                 />
-                <span className="block text-[12.8px] font-semibold text-muted mt-1.5">Ha egy barátodtól kaptál kódot, írd be — egy asztalhoz ültetünk.</span>
+                <span className="block text-[12.8px] font-semibold text-muted mt-1.5">Egy barátod közlemény-kódja — így egy asztalhoz ültetünk.</span>
                 {errors.friendCode && <span className="err">{errors.friendCode}</span>}
               </div>
             </>
@@ -482,7 +474,7 @@ export default function JelentkezesFlow() {
                     </div>
                   ))}
                   <div className="grid grid-cols-[96px_1fr] gap-3 py-2 items-center">
-                    <dt className="text-muted">Közlemény</dt>
+                    <dt className="text-muted leading-tight">Közlemény<span className="block text-[12px] text-gold font-bold">= barátkód</span></dt>
                     <dd className="flex items-center gap-2">
                       <span className="font-mono font-bold text-lg bg-gold-soft border border-gold rounded px-2.5 py-1 tracking-wider">{ref}</span>
                       <button type="button" onClick={() => copy("ref", ref)} className="text-sm text-navy-2 font-bold hover:underline cursor-pointer">
@@ -493,16 +485,9 @@ export default function JelentkezesFlow() {
                 </dl>
               </div>
               <p className="text-[12.8px] font-semibold text-sold text-center mt-1.5">Pontosan ezt a közleményt írd be!</p>
-              <div className="mt-3 flex items-center justify-between gap-3 rounded-md border border-gold bg-gold-soft px-3.5 py-2">
-                <div className="leading-tight">
-                  <span className="block text-[12px] text-muted">A te barátkódod</span>
-                  <span className="font-mono font-bold text-lg tracking-[3px] text-navy-2">{myCode}</span>
-                </div>
-                <button type="button" onClick={() => copy("code", myCode)} className="text-sm text-navy-2 font-bold hover:underline cursor-pointer">
-                  {copied === "code" ? "Másolva ✓" : "Másolás"}
-                </button>
-              </div>
-              <p className="text-[12.5px] text-muted text-center mt-1">Küldd el a barátaidnak — ezzel egy asztalhoz ültetünk titeket.</p>
+              <p className="text-[13px] text-center mt-2.5 leading-snug">
+                <b className="text-navy-2">Ez a barátkódod is.</b> <span className="text-muted">Küldd el a barátaidnak — ha beírják a jelentkezésüknél, egy asztalhoz ültetünk titeket.</span>
+              </p>
             </>
           )}
         </div>
