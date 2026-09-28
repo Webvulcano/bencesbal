@@ -8,7 +8,8 @@ const addr = (a) => `${a.zip} ${a.city}, ${a.street} ${a.no}${a.floor ? `, ${a.f
 export default async function Postazas() {
   const { registrations } = await loadAdminData();
   const wants = registrations.filter((r) => r.paperTicket && r.status !== "cancelled");
-  const ready = wants.filter((r) => r.status === "paid");
+  const ready = wants.filter((r) => r.status === "paid" && !r.printedAt);
+  const printed = wants.filter((r) => r.status === "paid" && r.printedAt);
   const waiting = wants.filter((r) => r.status === "pending");
   const tickets = ready.reduce((a, r) => a + r.members.length, 0);
 
@@ -17,8 +18,8 @@ export default async function Postazas() {
       <div className="flex flex-wrap items-end justify-between gap-4 mb-2">
         <h1 className="font-serif text-gold text-3xl">Postázás</h1>
         {ready.length > 0 && (
-          <a href="/admin/postazas/pdf" target="_blank" rel="noopener" className="btn-primary text-base px-6 py-3">
-            ⤓ Összes letöltése PDF-ben
+          <a href="/admin/postazas/pdf?todo=1" target="_blank" rel="noopener" className="btn-primary text-base px-6 py-3">
+            ⤓ Összes még nem nyomtatott (PDF)
           </a>
         )}
       </div>
@@ -27,10 +28,11 @@ export default async function Postazas() {
         utána a kivágható jegyek, oldalanként 4. Csak a <b className="text-black">fizetett</b>, papírjegyet kért jelentkezések kerülnek bele.
       </p>
 
-      <div className="grid grid-cols-3 gap-3 max-w-xl mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-3xl mb-6">
         {[
           ["Postázandó", ready.length],
           ["Jegy", tickets],
+          ["Nyomtatva", printed.length],
           ["Fizetésre vár", waiting.length],
         ].map(([k, v]) => (
           <div key={k} className="bg-white border border-line/70 rounded-lg px-4 py-3">
@@ -44,9 +46,10 @@ export default async function Postazas() {
         <p className="text-muted text-center py-16 bg-white border border-line/70 rounded-lg">Még senki nem kért papírjegyet.</p>
       ) : (
         <PostalTable
-          rows={[...ready, ...waiting].map((r) => ({
+          rows={[...ready, ...printed, ...waiting].map((r) => ({
             ref: r.ref,
             status: r.status,
+            printedAt: r.printedAt,
             name: r.contact.name,
             address: addr(r.address),
             count: r.members.length,

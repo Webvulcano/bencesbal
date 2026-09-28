@@ -1,23 +1,38 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
+import { setPrinted } from "@/app/admin/actions";
+
+const MATCH = {
+  todo: (r) => r.status === "paid" && !r.printedAt,
+  printed: (r) => r.status === "paid" && !!r.printedAt,
+  pending: (r) => r.status === "pending",
+  all: () => true,
+};
+const printedDate = (s) => new Date(s).toLocaleDateString("hu-HU", { month: "2-digit", day: "2-digit" });
 
 const pdfUrl = (refs) => "/admin/postazas/pdf?" + refs.map((r) => `ref=${encodeURIComponent(r)}`).join("&");
 
 export default function PostalTable({ rows }) {
   const [q, setQ] = useState("");
-  const [status, setStatus] = useState("paid");
+  const [status, setStatus] = useState("todo");
+  const [busy, startTransition] = useTransition();
   const [selected, setSelected] = useState(() => new Set());
 
   const visible = useMemo(() => {
     const needle = q.trim().toLowerCase();
     return rows.filter(
       (r) =>
-        (!status || r.status === status) &&
+        MATCH[status](r) &&
         (!needle || [r.name, r.ref, r.address, r.ticketNos.join(" ")].some((s) => s.toLowerCase().includes(needle))),
     );
   }, [rows, q, status]);
 
   const selectable = visible.filter((r) => r.status === "paid");
+  const markPrinted = (value) =>
+    startTransition(async () => {
+      await setPrinted(chosen, value);
+      setSelected(new Set());
+    });
   const chosen = rows.filter((r) => selected.has(r.ref) && r.status === "paid").map((r) => r.ref);
   const allVisibleSelected = selectable.length > 0 && selectable.every((r) => selected.has(r.ref));
 
@@ -45,9 +60,10 @@ export default function PostalTable({ rows }) {
         <label>
           <span className="block text-xs font-bold text-muted mb-1">Státusz</span>
           <select value={status} onChange={(e) => setStatus(e.target.value)} className="field py-2">
-            <option value="paid">Postázható (fizetett)</option>
+            <option value="todo">Postázandó (még nem nyomtatott)</option>
+            <option value="printed">Nyomtatva</option>
             <option value="pending">Még nem fizetett</option>
-            <option value="">Mind</option>
+            <option value="all">Mind</option>
           </select>
         </label>
       </div>
@@ -61,6 +77,15 @@ export default function PostalTable({ rows }) {
             </button>
           )}
         </span>
+        <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          disabled={!chosen.length || busy}
+          onClick={() => markPrinted(status !== "printed")}
+          className="rounded-md font-bold text-sm px-4 py-2 border border-gold/70 text-gold hover:bg-white/10 disabled:opacity-40 disabled:cursor-default cursor-pointer"
+        >
+          {busy ? "Mentés…" : status === "printed" ? "↺ Vissza: nem nyomtatott" : "✓ Megjelölés nyomtatottként"}
+        </button>
         <a
           href={chosen.length ? pdfUrl(chosen) : undefined}
           target="_blank"
@@ -70,6 +95,7 @@ export default function PostalTable({ rows }) {
         >
           ⤓ Kijelöltek letöltése PDF-ben
         </a>
+        </div>
       </div>
 
       <div className="bg-white border border-line/70 rounded-lg overflow-x-auto">
@@ -122,7 +148,14 @@ export default function PostalTable({ rows }) {
                   </td>
                   <td className="px-4 py-2.5">
                     <p className="font-bold">{r.name}</p>
-                    <p className="font-mono text-xs">{r.ref}</p>
+                    <p className="font-mono text-xs">
+                      {r.ref}
+                      {r.printedAt && (
+                        <span className="ml-2 font-sans font-bold text-[11px] text-free border border-free/50 bg-free-soft rounded-full px-2 py-px">
+                          nyomtatva {printedDate(r.printedAt)}
+                        </span>
+                      )}
+                    </p>
                   </td>
                   <td className="px-4 py-2.5">{r.address}</td>
                   <td className="px-4 py-2.5 font-mono tabular-nums">
