@@ -303,8 +303,12 @@ export default function JelentkezesFlow() {
                 {helpOpen && (
                   <div role="tooltip" className="absolute z-20 left-0 right-0 top-8 bg-navy text-white text-[14px] leading-snug rounded-md p-3.5 shadow-lg border-l-4 border-gold">
                     <p className="font-bold text-gold mb-1">Mi az a barátkód?</p>
-                    <p>Ezzel jelzed, hogy kikkel szeretnél <b>egy asztalhoz ülni</b> — akkor is, ha külön jelentkeztek.</p>
-                    <p className="mt-1.5">A barátkód <b>ugyanaz, mint az utalás közleménye</b> (pl. {REF_PREFIX}-1234), amit a jelentkezés végén mindenki megkap. Küldd el a barátaidnak, ők pedig írják be ide a sajátjuk jelentkezésekor. Ha te kaptál kódot valakitől, azt írd be.</p>
+                    <p>
+                      A fizetés végén <b>mindenki kap egy barátkódot</b> — ez ugyanaz, mint az utalás közleménye (pl. {REF_PREFIX}-1234).
+                    </p>
+                    <p className="mt-1.5">
+                      Ezzel jelzed, hogy kikkel szeretnél <b>egy asztalhoz ülni</b>, akkor is, ha külön jelentkeztek. Ha egy barátod már jelentkezett, kérd el a kódját, és írd be ide.
+                    </p>
                     <button type="button" onClick={() => setHelpOpen(false)} className="mt-2 text-gold font-bold text-sm cursor-pointer hover:underline">
                       Értem
                     </button>
