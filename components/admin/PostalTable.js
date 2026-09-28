@@ -85,7 +85,7 @@ export default function PostalTable({ rows }) {
           onClick={() => markPrinted(status !== "printed")}
           className="rounded-md font-bold text-sm px-4 py-2 border border-gold/70 text-gold hover:bg-white/10 disabled:opacity-40 disabled:cursor-default cursor-pointer"
         >
-          {busy ? "Mentés…" : status === "printed" ? "↺ Vissza: nem nyomtatott" : "✓ Megjelölés nyomtatottként"}
+          {busy ? "Mentés…" : status === "printed" ? "↺ Megjelölés nem nyomtatottként" : "✓ Megjelölés nyomtatottként"}
         </button>
         <a
           href={chosen.length ? pdfUrl(chosen) : undefined}

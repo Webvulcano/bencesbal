@@ -1,3 +1,4 @@
+import Link from "next/link";
 import ActionButton from "@/components/admin/ActionButton";
 import { loadAdminData, STATUS } from "@/lib/admin-data";
 import { cancelRegistration, markPaid } from "../actions";
@@ -15,7 +16,7 @@ const STATUS_FILTERS = [
 ];
 
 export default async function Jelentkezok({ searchParams }) {
-  const { status = "", hall = "", q = "" } = await searchParams;
+  const { status = "", hall = "", source = "", q = "" } = await searchParams;
   const { registrations, hallStats } = await loadAdminData();
   const needle = q.trim().toLowerCase();
 
@@ -23,16 +24,23 @@ export default async function Jelentkezok({ searchParams }) {
     (r) =>
       (!status || r.status === status) &&
       (!hall || r.members.some((m) => m.hallId === hall)) &&
+      (!source || r.source === source) &&
       (!needle ||
         r.ref.toLowerCase().includes(needle) ||
+        (r.note ?? "").toLowerCase().includes(needle) ||
         r.contact.phone.toLowerCase().includes(needle) ||
         r.members.some((m) => m.name.toLowerCase().includes(needle) || m.email.toLowerCase().includes(needle))),
   );
 
   return (
     <>
-      <div className="flex flex-wrap items-baseline justify-between gap-3 mb-5">
-        <h1 className="font-serif text-gold text-3xl">Jelentkezők</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+        <div className="flex flex-wrap items-center gap-4">
+          <h1 className="font-serif text-gold text-3xl">Jelentkezők</h1>
+          <Link href="/admin/jelentkezok/uj" className="btn-primary text-sm px-4 py-2.5">
+            + Vendég felvétele
+          </Link>
+        </div>
         <p className="text-sm text-muted">
           {list.length} társaság · {list.reduce((a, r) => a + r.members.length, 0)} fő
         </p>
@@ -60,6 +68,14 @@ export default async function Jelentkezok({ searchParams }) {
             ))}
           </select>
         </label>
+        <label>
+          <span className="filter-label">Forrás</span>
+          <select name="source" defaultValue={source} className="field py-2">
+            <option value="">Mind</option>
+            <option value="web">Web</option>
+            <option value="admin">Meghívott</option>
+          </select>
+        </label>
         <button className="btn-primary text-sm px-5 py-2.5">Szűrés</button>
       </form>
 
@@ -74,10 +90,16 @@ export default async function Jelentkezok({ searchParams }) {
                 {r.groupNo && <p className="text-xs text-muted mt-0.5">Ültetési csoport #{r.groupNo}</p>}
               </div>
               <div className="flex-1 min-w-[200px] leading-snug">
-                <p className="font-bold">{r.contact.name}</p>
-                <p className="text-sm text-muted break-all">
-                  {r.contact.email} · {r.contact.phone}
+                <p className="font-bold">
+                  {r.contact.name}
+                  {r.source === "admin" && (
+                    <span className="ml-2 align-middle text-[11px] font-bold text-navy-2 border border-navy-2/40 bg-[#eef1f8] rounded-full px-2 py-0.5">
+                      Meghívott{r.guestCategory ? ` · ${r.guestCategory}` : ""}
+                    </span>
+                  )}
                 </p>
+                <p className="text-sm text-muted break-all">{[r.contact.email, r.contact.phone].filter(Boolean).join(" · ") || "nincs elérhetőség"}</p>
+                {r.note && <p className="text-sm mt-1 italic text-navy-2">„{r.note}”</p>}
                 {r.linked.length > 0 && (
                   <p className="text-sm mt-1">
                     <span className="text-gold font-bold">Együtt:</span> {r.linked.map((l) => `${l.ref} (${l.name})`).join(", ")}
@@ -110,7 +132,7 @@ export default async function Jelentkezok({ searchParams }) {
                     <tr key={m.seq} className="border-t border-line/40">
                       <td className="px-4 py-2 font-mono font-bold tabular-nums">{m.ticketNo ?? <span className="text-muted font-normal">—</span>}</td>
                       <td className={`px-4 py-2 ${m.isContact ? "font-bold" : ""}`}>{m.name}</td>
-                      <td className="px-4 py-2 text-muted break-all">{m.email}</td>
+                      <td className="px-4 py-2 text-muted break-all">{m.email || "—"}</td>
                       <td className="px-4 py-2 whitespace-nowrap">{m.typeLabel}</td>
                       <td className="px-4 py-2 whitespace-nowrap">{m.hallLabel}</td>
                     </tr>
@@ -122,8 +144,7 @@ export default async function Jelentkezok({ searchParams }) {
             {r.status !== "cancelled" && (
               <footer className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 bg-[#fafaf7] border-t border-line/60">
                 <p className="text-xs text-muted">
-                  {r.address.zip} {r.address.city}, {r.address.street} {r.address.no}
-                  {r.address.floor ? `, ${r.address.floor}` : ""}
+                  {r.address.city ? `${r.address.zip} ${r.address.city}, ${r.address.street} ${r.address.no}${r.address.floor ? `, ${r.address.floor}` : ""}` : "nincs cím"}
                   {r.paperTicket && <b className="text-navy-2"> · papírjegyet kér</b>}
                 </p>
                 <div className="flex gap-2">
