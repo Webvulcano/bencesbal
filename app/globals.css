@@ -1,26 +1,70 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-navy: #112250;
+  --color-navy-2: #13336d;
+  --color-gold: #cdac43;
+  --color-gold-soft: #faf5e6;
+  --color-sold: #dc3545;
+  --color-sold-soft: #ffeaea;
+  --color-free: #2e7d4f;
+  --color-free-soft: #eaf6ee;
+  --color-muted: #666666;
+  --color-line: #cccccc;
+  --font-serif: var(--font-cormorant), "Times New Roman", Garamond, Baskerville, serif;
+  --font-sans: Optima, "Segoe UI", Arial, sans-serif;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: #fff;
+  color: #000;
+  font-family: var(--font-sans);
+}
+
+@layer components {
+  .h-page {
+    @apply font-serif text-gold text-center text-[32px] tracking-[2px] pt-8 pb-2.5 border-b-[3px] border-navy;
+  }
+  .h-section {
+    @apply font-serif text-gold text-2xl tracking-[1px] pb-2.5 mb-5 border-b-[1.5px] border-navy;
+  }
+  .label {
+    @apply block font-bold mb-1.5;
+  }
+  .hint {
+    @apply block text-[12.8px] font-semibold text-muted -mt-1 mb-1.5;
+  }
+  .field {
+    @apply w-full bg-white border border-line rounded-[2px] px-3 py-2.5 text-base outline-none transition;
+  }
+  .field:focus {
+    @apply border-navy-2 ring-3 ring-gold/25;
+  }
+  .field[aria-invalid="true"] {
+    @apply border-sold bg-sold-soft/40;
+  }
+  .err {
+    @apply block text-sold text-sm mt-1;
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center bg-navy-2 text-white uppercase font-bold tracking-[1px] text-lg rounded-lg px-[30px] py-[15px] cursor-pointer transition hover:bg-navy disabled:opacity-50;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center border border-navy-2 text-navy-2 uppercase font-bold tracking-[1px] text-lg rounded-lg px-[30px] py-[14px] cursor-pointer transition hover:bg-navy-2/5;
+  }
+  .check {
+    @apply relative flex gap-3 items-start cursor-pointer leading-snug;
+  }
+  .check input {
+    @apply sr-only;
+  }
+  .check .box {
+    @apply mt-0.5 shrink-0 size-5 rounded border border-navy-2 bg-white grid place-items-center text-navy-2 text-sm font-bold transition;
+  }
+  .check input:focus-visible + .box {
+    @apply ring-3 ring-gold/40;
+  }
+  .check input[type="radio"] + .box {
+    @apply rounded-full;
+  }
 }
