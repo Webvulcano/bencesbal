@@ -1,6 +1,7 @@
 "use client";
-import { useState } from "react";
-import { BANK, DEMO_FREE, HALLS, PAYMENT_DEADLINE_DAYS, REF_PREFIX, RELATIONS, SCHOOLS, TICKET_TYPES } from "@/lib/constants";
+import { useCallback, useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
+import { BANK, HALLS, PAYMENT_DEADLINE_DAYS, REF_PREFIX, RELATIONS, SCHOOLS, TICKET_TYPES } from "@/lib/constants";
 
 const huf = (n) => new Intl.NumberFormat("hu-HU").format(n) + " Ft";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -37,6 +38,11 @@ const EMPTY = {
   consent: false,
 };
 
+async function fetchFree() {
+  const { data, error } = await supabase.rpc("free_seats");
+  return error ? null : Object.fromEntries(data.map((h) => [h.hall_id, h.free]));
+}
+
 function Field({ label, hint, error, required, children }) {
   return (
     <div className="mb-3.5">
@@ -61,8 +67,7 @@ function Check({ type = "checkbox", checked, onChange, name, children }) {
   );
 }
 
-function TicketCard({ t, qty, max, onQty }) {
-  const soldOut = DEMO_FREE[t.hall] === 0;
+function TicketCard({ t, qty, max, soldOut, onQty }) {
   const meta = [soldOut && "ELFOGYOTT", t.requires && REQUIRES_LABEL[t.requires], t.maxPeople && `max. ${t.maxPeople} fő`].filter(Boolean);
   const active = qty > 0;
   return (
@@ -124,6 +129,18 @@ export default function JelentkezesFlow() {
   const [ref, setRef] = useState("");
   const [copied, setCopied] = useState("");
   const [helpOpen, setHelpOpen] = useState(false);
+  const [free, setFree] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  const loadFree = useCallback(() => fetchFree().then((m) => m && setFree(m)), []);
+
+  useEffect(() => {
+    let alive = true;
+    fetchFree().then((m) => alive && m && setFree(m));
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   const count = Object.values(f.qty).reduce((a, b) => a + b, 0);
   const total = PUBLIC_TYPES.reduce((sum, t) => sum + (f.qty[t.id] || 0) * t.price, 0);
@@ -183,12 +200,42 @@ export default function JelentkezesFlow() {
 
   const bad = (k) => (errors[k] ? "true" : undefined);
 
+  async function submit() {
+    setSubmitting(true);
+    const { data, error } = await supabase.rpc("create_registration", {
+      payload: {
+        qty: f.qty,
+        contact: f.contact,
+        address: f.address,
+        relation: f.relation,
+        companions: f.companions,
+        friendCodes: f.friendCodes.filter(Boolean),
+        paperTicket: f.paperTicket,
+        consent: f.consent,
+      },
+    });
+    setSubmitting(false);
+    if (error) {
+      const msg = error.message || "";
+      if (msg.startsWith("SOLD_OUT:")) {
+        const h = HALLS[msg.split(":")[1]];
+        setErrors({ submit: `Közben elfogyott a hely${h ? ` a(z) ${h.label}ben` : ""}. Kérjük, módosítsd a jegyeket.` });
+        loadFree();
+      } else if (msg.startsWith("BAD_FRIEND_CODE:")) {
+        setErrors({ submit: `A(z) ${msg.split(":")[1]} barátkód nem létezik. Ellenőrizd, vagy töröld az Ültetés lépésen.` });
+      } else {
+        setErrors({ submit: "Nem sikerült elküldeni a jelentkezést. Próbáld újra pár perc múlva." });
+      }
+      return;
+    }
+    setRef(data);
+    loadFree();
+    setStepIdx(stepIdx + 1);
+  }
+
   function next() {
     if (!validate()) return;
-    if (step === "veglegesites") {
-      // TODO: mentés DB-be; most csak demo közlemény-kód
-      setRef(`${REF_PREFIX}-${String(Math.floor(1000 + Math.random() * 9000))}`);
-    }
+    if (step === "veglegesites") return submit();
     setStepIdx(stepIdx + 1);
   }
 
@@ -234,7 +281,7 @@ export default function JelentkezesFlow() {
             <>
               <div className="grid grid-cols-2 gap-2 mb-3" role="tablist">
                 {Object.values(HALLS).map((h) => {
-                  const free = DEMO_FREE[h.id];
+                  const hallFree = free?.[h.id];
                   const active = hall === h.id;
                   return (
                     <button
@@ -253,8 +300,8 @@ export default function JelentkezesFlow() {
                         })()}
                       </span>
                       <span className={`flex items-center gap-1.5 text-[12.5px] font-semibold ${active ? "text-white/85" : "text-muted"}`}>
-                        <span className={`size-2 rounded-full ${free > 0 ? "bg-free" : "bg-sold"}`} />
-                        {free > 0 ? `${free} szabad / ${h.capacity}` : "Betelt"}
+                        <span className={`size-2 rounded-full ${hallFree == null ? "bg-line" : hallFree > 0 ? "bg-free" : "bg-sold"}`} />
+                        {hallFree == null ? "…" : hallFree > 0 ? `${hallFree} szabad / ${h.capacity}` : "Betelt"}
                       </span>
                     </button>
                   );
@@ -263,12 +310,15 @@ export default function JelentkezesFlow() {
               <div className="space-y-2">
                 {PUBLIC_TYPES.filter((t) => t.hall === hall).map((t) => {
                   const q = f.qty[t.id] || 0;
+                  const hallFree = free?.[t.hall] ?? 0;
+                  const hallTaken = PUBLIC_TYPES.filter((x) => x.hall === t.hall).reduce((a, x) => a + (f.qty[x.id] || 0), 0);
                   return (
                     <TicketCard
                       key={t.id}
                       t={t}
                       qty={q}
-                      max={Math.min(20 - (count - q), t.maxPeople ?? 20)}
+                      max={Math.min(20 - (count - q), t.maxPeople ?? 20, hallFree - (hallTaken - q))}
+                      soldOut={free !== null && hallFree === 0}
                       onQty={(n) => {
                         setQty(t.id, n);
                         setErrors({});
@@ -519,6 +569,11 @@ export default function JelentkezesFlow() {
                     foglaltakat elolvastam, megértettem és elfogadom.<span className="text-gold"> *</span>
                   </Check>
                   {errors.consent && <span className="err ml-8">{errors.consent}</span>}
+                  {errors.submit && (
+                    <p role="alert" className="mt-3 rounded-md border border-sold bg-sold-soft px-3 py-2 text-[14px] text-sold font-semibold">
+                      {errors.submit}
+                    </p>
+                  )}
                 </div>
               </div>
             </>
@@ -592,8 +647,8 @@ export default function JelentkezesFlow() {
                 <span className="block text-[12px] text-muted">Fizetendő</span>
                 <span className="block font-bold text-navy-2 text-lg truncate">{huf(total)}</span>
               </div>
-              <button type="button" className="btn-primary px-5 text-base sm:px-[30px] sm:text-lg" onClick={next}>
-                {step === "veglegesites" ? "Jelentkezés" : "Tovább"}
+              <button type="button" className="btn-primary px-5 text-base sm:px-[30px] sm:text-lg" onClick={next} disabled={submitting}>
+                {submitting ? "Küldés…" : step === "veglegesites" ? "Jelentkezés" : "Tovább"}
               </button>
             </>
           )}
