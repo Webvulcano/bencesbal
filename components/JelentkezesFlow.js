@@ -79,7 +79,7 @@ function TicketCard({ t, selected, onSelect }) {
         {selected && <span className="size-2.5 rounded-full bg-navy-2" />}
       </span>
       <span className="flex-1 min-w-0 leading-tight">
-        <span className="block font-bold">{t.label.replace(/ — (Díszterem|Különterem)$/, "")}</span>
+        <span className="block font-bold">{t.label}</span>
         {meta.length > 0 && (
           <span className="block text-[12px] font-semibold mt-0.5">
             {meta.map((m, i) => (
