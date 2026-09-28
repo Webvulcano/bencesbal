@@ -549,7 +549,7 @@ export default function JelentkezesFlow() {
                     </div>
                   ))}
                   <div className="grid grid-cols-[96px_1fr] gap-3 py-2 items-center">
-                    <dt className="text-muted leading-tight">Közlemény<span className="block text-[12px] text-gold font-bold">= barátkód</span></dt>
+                    <dt className="text-muted">Közlemény</dt>
                     <dd className="flex items-center gap-2">
                       <span className="font-mono font-bold text-lg bg-gold-soft border border-gold rounded px-2.5 py-1 tracking-wider">{ref}</span>
                       <button type="button" onClick={() => copy("ref", ref)} className="text-sm text-navy-2 font-bold hover:underline cursor-pointer">
@@ -560,9 +560,16 @@ export default function JelentkezesFlow() {
                 </dl>
               </div>
               <p className="text-[12.8px] font-semibold text-sold text-center mt-1.5">Pontosan ezt a közleményt írd be!</p>
-              <p className="text-[13px] text-center mt-2.5 leading-snug">
-                <b className="text-navy-2">Ez a barátkódod is.</b> <span className="text-muted">Küldd el a barátaidnak — ha beírják a jelentkezésüknél, egy asztalhoz ültetünk titeket.</span>
-              </p>
+              <div className="mt-3 flex items-center justify-between gap-3 rounded-md border border-gold bg-gold-soft px-3.5 py-2">
+                <div className="leading-tight">
+                  <span className="block text-[12px] text-muted">A te barátkódod</span>
+                  <span className="font-mono font-bold text-lg tracking-[2px] text-navy-2">{ref}</span>
+                </div>
+                <button type="button" onClick={() => copy("code", ref)} className="text-sm text-navy-2 font-bold hover:underline cursor-pointer">
+                  {copied === "code" ? "Másolva ✓" : "Másolás"}
+                </button>
+              </div>
+              <p className="text-[12.5px] text-muted text-center mt-1">Küldd el a barátaidnak, hogy egy asztalhoz ülhessetek.</p>
             </>
           )}
         </div>
