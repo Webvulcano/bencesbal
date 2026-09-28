@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { BANK, DEMO_FREE, HALLS, PAYMENT_DEADLINE_DAYS, REF_PREFIX, RELATIONS, SCHOOLS, TICKET_TYPES, ticketType } from "@/lib/constants";
+import { BANK, DEMO_FREE, HALLS, PAYMENT_DEADLINE_DAYS, REF_PREFIX, RELATIONS, SCHOOLS, TICKET_TYPES } from "@/lib/constants";
 
 const huf = (n) => new Intl.NumberFormat("hu-HU").format(n) + " Ft";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -17,7 +17,7 @@ const PRIVACY_URL = "https://jelentkezes.gyoribencesbal.hu/adatkezelesi.pdf";
 
 const STEP_TITLES = {
   jegy: "Jegytípus",
-  letszam: "Létszám",
+  letszam: "Ültetés",
   kapcsolat: "Kapcsolattartó",
   lakcim: "Lakcím",
   bences: "Bencés kapcsolat",
@@ -27,9 +27,8 @@ const STEP_TITLES = {
 };
 
 const EMPTY = {
-  ticketTypeId: "",
-  count: 1,
-  friendCode: "",
+  qty: {},
+  friendCodes: [""],
   contact: { name: "", email: "", phone: "" },
   address: { zip: "", city: "", street: "", no: "", floor: "" },
   relation: { type: "", school: "", year: "", empCode: "" },
@@ -62,44 +61,52 @@ function Check({ type = "checkbox", checked, onChange, name, children }) {
   );
 }
 
-function TicketCard({ t, selected, onSelect }) {
+function TicketCard({ t, qty, max, onQty }) {
   const soldOut = DEMO_FREE[t.hall] === 0;
   const meta = [soldOut && "ELFOGYOTT", t.requires && REQUIRES_LABEL[t.requires], t.maxPeople && `max. ${t.maxPeople} fő`].filter(Boolean);
+  const active = qty > 0;
   return (
-    <label
-      className={`flex items-center gap-3 rounded-md border px-3.5 py-2.5 transition ${
-        soldOut
-          ? "border-line bg-[#fafafa] cursor-not-allowed text-muted"
-          : selected
-            ? "border-navy-2 bg-gold-soft shadow-[inset_5px_0_0_var(--color-gold)] cursor-pointer"
-            : "border-line hover:border-navy-2/60 cursor-pointer"
+    <div
+      className={`flex items-center gap-3 rounded-md border pl-3.5 pr-2 py-2 transition ${
+        soldOut ? "border-line bg-[#fafafa] text-muted" : active ? "border-navy-2 bg-gold-soft shadow-[inset_5px_0_0_var(--color-gold)]" : "border-line"
       }`}
     >
-      <input type="radio" name="tt" className="sr-only peer" disabled={soldOut} checked={selected} onChange={onSelect} />
-      <span
-        className={`size-5 shrink-0 rounded-full border grid place-items-center peer-focus-visible:ring-3 peer-focus-visible:ring-gold/40 ${
-          selected ? "border-navy-2" : "border-line"
-        }`}
-      >
-        {selected && <span className="size-2.5 rounded-full bg-navy-2" />}
-      </span>
       <span className="flex-1 min-w-0 leading-tight">
         <span className="block font-bold">{t.label}</span>
-        {meta.length > 0 && (
-          <span className="block text-[12px] font-semibold mt-0.5">
-            {meta.map((m, i) => (
-              <span key={m} className={m === "ELFOGYOTT" ? "text-sold" : "text-muted"}>
-                {i > 0 && " · "}
-                {m}
-              </span>
-            ))}
-          </span>
-        )}
+        <span className="block text-[13px] mt-0.5">
+          <b className={soldOut ? "" : "text-navy-2"}>{huf(t.price)}</b> <span className="text-muted">/ fő</span>
+          {meta.map((m) => (
+            <span key={m} className={`font-semibold ${m === "ELFOGYOTT" ? "text-sold" : "text-muted"}`}>
+              {" · "}
+              {m}
+            </span>
+          ))}
+        </span>
       </span>
-      <span className={`font-bold whitespace-nowrap ${soldOut ? "" : "text-navy-2"}`}>
-        {huf(t.price)} <span className="font-normal text-muted text-sm">/ fő</span>
-      </span>
-    </label>
+      <div className="flex items-center shrink-0">
+        <button
+          type="button"
+          aria-label={`${t.label}: kevesebb`}
+          disabled={soldOut || qty <= 0}
+          onClick={() => onQty(qty - 1)}
+          className="size-9 rounded-full border border-navy-2/40 text-navy-2 text-xl leading-none grid place-items-center cursor-pointer hover:bg-white disabled:opacity-25 disabled:cursor-default"
+        >
+          −
+        </button>
+        <span className={`w-8 text-center font-bold text-lg tabular-nums ${active ? "text-navy-2" : "text-muted"}`} aria-live="polite">
+          {qty}
+        </span>
+        <button
+          type="button"
+          aria-label={`${t.label}: több`}
+          disabled={soldOut || qty >= max}
+          onClick={() => onQty(qty + 1)}
+          className="size-9 rounded-full bg-navy-2 text-white text-xl leading-none grid place-items-center cursor-pointer hover:bg-navy disabled:opacity-25 disabled:cursor-default"
+        >
+          +
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -112,7 +119,11 @@ export default function JelentkezesFlow() {
   const [copied, setCopied] = useState("");
   const [helpOpen, setHelpOpen] = useState(false);
 
-  const steps = ["jegy", "letszam", "kapcsolat", "lakcim", "bences", ...(f.count > 1 ? ["tarsak"] : []), "veglegesites", "fizetes"];
+  const count = Object.values(f.qty).reduce((a, b) => a + b, 0);
+  const total = PUBLIC_TYPES.reduce((sum, t) => sum + (f.qty[t.id] || 0) * t.price, 0);
+  const lines = PUBLIC_TYPES.filter((t) => f.qty[t.id]).map((t) => `${f.qty[t.id]} × ${t.label}`);
+
+  const steps = ["jegy", "letszam", "kapcsolat", "lakcim", "bences", ...(count > 1 ? ["tarsak"] : []), "veglegesites", "fizetes"];
   const step = steps[stepIdx];
   const formSteps = steps.length - 1;
 
@@ -126,22 +137,21 @@ export default function JelentkezesFlow() {
       return next;
     });
 
-  const setCount = (n) =>
+  const setQty = (id, n) =>
     setF((prev) => {
-      const count = Math.max(1, Math.min(20, n || 1));
-      const companions = Array.from({ length: count - 1 }, (_, i) => prev.companions[i] || { name: "", email: "" });
-      return { ...prev, count, companions };
+      const qty = { ...prev.qty, [id]: Math.max(0, n) };
+      const c = Object.values(qty).reduce((a, b) => a + b, 0);
+      const companions = Array.from({ length: Math.max(0, c - 1) }, (_, i) => prev.companions[i] || { name: "", email: "" });
+      return { ...prev, qty, companions };
     });
-
-  const tt = ticketType(f.ticketTypeId);
-  const total = tt ? f.count * tt.price : 0;
 
   function validate() {
     const e = {};
-    if (step === "jegy" && !tt) e.ticket = "Válassz jegytípust";
+    if (step === "jegy" && count < 1) e.ticket = "Válassz legalább 1 jegyet";
     if (step === "letszam") {
-      if (tt?.maxPeople && f.count > tt.maxPeople) e.count = `Ebből a jegyből legfeljebb ${tt.maxPeople} db vehető`;
-      if (f.friendCode && !CODE_RE.test(f.friendCode)) e.friendCode = `A barátkód formátuma: ${REF_PREFIX}-1234`;
+      f.friendCodes.forEach((c, i) => {
+        if (c && !CODE_RE.test(c)) e[`fc${i}`] = `A barátkód formátuma: ${REF_PREFIX}-1234`;
+      });
     }
     if (step === "kapcsolat") {
       if (!f.contact.name.trim()) e.name = "Kötelező";
@@ -153,8 +163,6 @@ export default function JelentkezesFlow() {
       if (!f.relation.type) e.relation = "Válassz egyet";
       if (f.relation.type === "oregdiak" && (!f.relation.school || !f.relation.year)) e.relation = "Add meg az iskolát és évfolyamot";
       if (f.relation.type === "munkatars" && !f.relation.empCode.trim()) e.relation = "Add meg a dolgozói kódot";
-      if (tt?.requires && tt.requires !== f.relation.type)
-        e.relation = `A választott jegy csak ${tt.requires === "munkatars" ? "munkatársaknak" : "öregdiákoknak"} szól`;
     }
     if (step === "tarsak")
       f.companions.forEach((c, i) => {
@@ -230,7 +238,13 @@ export default function JelentkezesFlow() {
                       onClick={() => setHall(h.id)}
                       className={`rounded-md border-2 px-3 py-2 text-left transition cursor-pointer ${active ? "border-navy-2 bg-navy-2 text-white" : "border-line hover:border-navy-2/50"}`}
                     >
-                      <span className="block font-bold">{h.label}</span>
+                      <span className="flex items-center justify-between gap-2 font-bold">
+                        {h.label}
+                        {(() => {
+                          const n = PUBLIC_TYPES.filter((t) => t.hall === h.id).reduce((a, t) => a + (f.qty[t.id] || 0), 0);
+                          return n > 0 ? <span className={`text-[12px] rounded-full px-2 py-0.5 ${active ? "bg-gold text-navy" : "bg-gold-soft text-navy-2"}`}>{n} db</span> : null;
+                        })()}
+                      </span>
                       <span className={`flex items-center gap-1.5 text-[12.5px] font-semibold ${active ? "text-white/85" : "text-muted"}`}>
                         <span className={`size-2 rounded-full ${free > 0 ? "bg-free" : "bg-sold"}`} />
                         {free > 0 ? `${free} szabad / ${h.capacity}` : "Betelt"}
@@ -240,51 +254,33 @@ export default function JelentkezesFlow() {
                 })}
               </div>
               <div className="space-y-2">
-                {PUBLIC_TYPES.filter((t) => t.hall === hall).map((t) => (
-                  <TicketCard
-                    key={t.id}
-                    t={t}
-                    selected={f.ticketTypeId === t.id}
-                    onSelect={() => {
-                      set("ticketTypeId", t.id);
-                      setErrors({});
-                    }}
-                  />
-                ))}
+                {PUBLIC_TYPES.filter((t) => t.hall === hall).map((t) => {
+                  const q = f.qty[t.id] || 0;
+                  return (
+                    <TicketCard
+                      key={t.id}
+                      t={t}
+                      qty={q}
+                      max={Math.min(20 - (count - q), t.maxPeople ?? 20)}
+                      onQty={(n) => {
+                        setQty(t.id, n);
+                        setErrors({});
+                      }}
+                    />
+                  );
+                })}
               </div>
-              {errors.ticket && <span className="err mt-2">{errors.ticket}</span>}
+              <span className="block text-[12.8px] font-semibold text-muted mt-2.5">Egy jelentkezésben összesen max. 20 jegy. Több jegytípus is választható.</span>
+              {errors.ticket && <span className="err mt-1">{errors.ticket}</span>}
             </>
           )}
 
-          {step === "letszam" && tt && (
+          {step === "letszam" && (
             <>
-              <p className="text-muted mb-4">
-                {tt.label} · {huf(tt.price)} / fő
-              </p>
-              <span className="label">Hány jegyet kérsz?</span>
-              <div className="inline-flex items-stretch border border-line rounded-[2px]">
-                <button type="button" aria-label="Kevesebb" className="w-12 text-xl text-navy-2 hover:bg-gold-soft disabled:opacity-30" disabled={f.count <= 1} onClick={() => setCount(f.count - 1)}>
-                  −
-                </button>
-                <input
-                  type="number"
-                  min={1}
-                  max={20}
-                  aria-label="Jegyek száma"
-                  className="w-16 text-center text-lg font-bold border-x border-line py-2.5 outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
-                  value={f.count}
-                  onChange={(e) => setCount(Number(e.target.value))}
-                />
-                <button type="button" aria-label="Több" className="w-12 text-xl text-navy-2 hover:bg-gold-soft disabled:opacity-30" disabled={f.count >= 20} onClick={() => setCount(f.count + 1)}>
-                  +
-                </button>
-              </div>
-              <span className="block text-[12.8px] font-semibold text-muted mt-1.5">Egy jelentkezésben max. 20 jegy.</span>
-              {errors.count && <span className="err">{errors.count}</span>}
-
-              <div className="mt-6 relative">
+              <p className="text-muted mb-5">Szeretnél a barátaiddal egy asztalhoz ülni? Ha kaptál tőlük barátkódot, írd be ide.</p>
+              <div className="relative">
                 <div className="flex items-center gap-2 mb-1.5">
-                  <label htmlFor="friendCode" className="font-bold">
+                  <label htmlFor="friendCode0" className="font-bold">
                     Barátkód <span className="font-normal text-muted text-sm">(nem kötelező)</span>
                   </label>
                   <button
@@ -307,24 +303,49 @@ export default function JelentkezesFlow() {
                     </button>
                   </div>
                 )}
-                <div className="flex items-stretch gap-2">
-                  <span aria-hidden className="grid place-items-center px-3 rounded-[2px] bg-[#f1f1f1] border border-line text-muted font-mono font-bold tracking-[2px] select-none">
-                    {REF_PREFIX}-
-                  </span>
-                  <input
-                    id="friendCode"
-                    className="field font-mono font-bold tracking-[4px] w-[110px]"
-                    placeholder="1234"
-                    inputMode="numeric"
-                    autoComplete="off"
-                    aria-label={`Barátkód, ${REF_PREFIX}- utáni 4 számjegy`}
-                    aria-invalid={bad("friendCode")}
-                    value={f.friendCode.slice(REF_PREFIX.length + 1)}
-                    onChange={(e) => set("friendCode", normalizeCode(e.target.value))}
-                  />
+                <div className="space-y-2 max-h-[calc(100dvh-430px)] min-h-[52px] overflow-y-auto overscroll-contain">
+                  {f.friendCodes.map((code, i) => (
+                    <div key={i}>
+                      <div className="flex items-stretch gap-2">
+                        <span aria-hidden className="grid place-items-center px-3 rounded-[2px] bg-[#f1f1f1] border border-line text-muted font-mono font-bold tracking-[2px] select-none">
+                          {REF_PREFIX}-
+                        </span>
+                        <input
+                          id={`friendCode${i}`}
+                          className="field font-mono font-bold tracking-[4px] w-[110px]"
+                          placeholder="1234"
+                          inputMode="numeric"
+                          autoComplete="off"
+                          aria-label={`${i + 1}. barátkód, ${REF_PREFIX}- utáni 4 számjegy`}
+                          aria-invalid={bad(`fc${i}`)}
+                          value={code.slice(REF_PREFIX.length + 1)}
+                          onChange={(e) => set(`friendCodes.${i}`, normalizeCode(e.target.value))}
+                        />
+                        {f.friendCodes.length > 1 && (
+                          <button
+                            type="button"
+                            aria-label={`${i + 1}. barátkód törlése`}
+                            onClick={() => set("friendCodes", f.friendCodes.filter((_, j) => j !== i))}
+                            className="px-2 text-muted text-xl hover:text-sold cursor-pointer"
+                          >
+                            ×
+                          </button>
+                        )}
+                      </div>
+                      {errors[`fc${i}`] && <span className="err">{errors[`fc${i}`]}</span>}
+                    </div>
+                  ))}
                 </div>
-                <span className="block text-[12.8px] font-semibold text-muted mt-1.5">Egy barátod közlemény-kódja — így egy asztalhoz ültetünk.</span>
-                {errors.friendCode && <span className="err">{errors.friendCode}</span>}
+                {f.friendCodes.length < 10 && (
+                  <button
+                    type="button"
+                    onClick={() => set("friendCodes", [...f.friendCodes, ""])}
+                    className="mt-2.5 text-navy-2 font-bold text-[15px] hover:underline cursor-pointer"
+                  >
+                    + Újabb barátkód
+                  </button>
+                )}
+                <span className="block text-[12.8px] font-semibold text-muted mt-1.5">Barátaid közlemény-kódjai — így egy asztalhoz ültetünk titeket.</span>
               </div>
             </>
           )}
@@ -423,18 +444,18 @@ export default function JelentkezesFlow() {
             </>
           )}
 
-          {step === "veglegesites" && tt && (
+          {step === "veglegesites" && (
             <>
               <dl className="text-[15px] divide-y divide-line/60 border-y border-line/60 mb-5">
                 {[
-                  ["Jegy", `${tt.label} × ${f.count}`],
+                  ["Jegy", lines.join(", ")],
                   ["Kapcsolattartó", `${f.contact.name} · ${f.contact.email}`],
                   ["Cím", `${f.address.zip} ${f.address.city}, ${f.address.street} ${f.address.no}${f.address.floor ? ", " + f.address.floor : ""}`],
-                  ...(f.friendCode ? [["Barátkód", f.friendCode]] : []),
+                  ...(f.friendCodes.some(Boolean) ? [["Barátkód", f.friendCodes.filter(Boolean).join(", ")]] : []),
                 ].map(([k, v]) => (
                   <div key={k} className="grid grid-cols-[110px_1fr] gap-3 py-2">
                     <dt className="text-muted">{k}</dt>
-                    <dd className="font-semibold truncate">{v}</dd>
+                    <dd className="font-semibold break-words">{v}</dd>
                   </div>
                 ))}
               </dl>
@@ -456,7 +477,7 @@ export default function JelentkezesFlow() {
             </>
           )}
 
-          {step === "fizetes" && tt && (
+          {step === "fizetes" && (
             <>
               <div className="text-center mb-3">
                 <h1 className="font-serif text-gold text-2xl sm:text-3xl leading-tight">Köszönjük, {f.contact.name}!</h1>
