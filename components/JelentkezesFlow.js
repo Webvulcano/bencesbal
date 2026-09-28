@@ -432,13 +432,18 @@ export default function JelentkezesFlow() {
             <>
               <p className="text-muted text-sm mb-3">Add meg, kinek szól a többi jegy — a jegyet emailben küldjük nekik.</p>
               <div className="max-h-[calc(100dvh-290px)] overflow-y-auto overscroll-contain border border-line/70 rounded-md divide-y divide-line/60">
-                <div className="flex gap-2.5 items-center px-3 py-2.5 bg-gold-soft/60">
-                  <span className="font-serif text-gold text-xl w-6 shrink-0">1.</span>
-                  <div className="flex-1 min-w-0 leading-tight">
-                    <span className="block font-bold truncate">{f.contact.name}</span>
-                    <span className="block text-[12px] text-muted">kapcsolattartó</span>
+                <div className="flex gap-2.5 items-start px-3 py-2.5">
+                  <span className="font-serif text-gold text-xl w-6 pt-1.5 shrink-0">1.</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="mb-1.5 flex items-center gap-2">
+                      <TicketTag t={seats[0]} />
+                      <span className="text-[12px] text-muted">kapcsolattartó</span>
+                    </div>
+                    <div className="grid sm:grid-cols-2 gap-2">
+                      <input className="field disabled:bg-[#f4f4f4] disabled:text-muted disabled:cursor-not-allowed" aria-label="Kapcsolattartó neve" value={f.contact.name} disabled />
+                      <input className="field disabled:bg-[#f4f4f4] disabled:text-muted disabled:cursor-not-allowed" aria-label="Kapcsolattartó emailje" value={f.contact.email} disabled />
+                    </div>
                   </div>
-                  <TicketTag t={seats[0]} />
                 </div>
                 {f.companions.map((c, i) => (
                   <div key={i} className="flex gap-2.5 items-start px-3 py-2.5">
