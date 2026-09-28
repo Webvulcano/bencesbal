@@ -40,11 +40,11 @@ export default async function Jelentkezok({ searchParams }) {
 
       <form className="bg-white border border-line/70 rounded-lg p-3 mb-5 flex flex-wrap gap-2 items-end">
         <label className="flex-1 min-w-[200px]">
-          <span className="block text-xs font-bold text-muted mb-1">Keresés</span>
+          <span className="filter-label">Keresés</span>
           <input name="q" defaultValue={q} placeholder="Név, email, telefon, GYBB-kód" className="field py-2" />
         </label>
         <label>
-          <span className="block text-xs font-bold text-muted mb-1">Státusz</span>
+          <span className="filter-label">Státusz</span>
           <select name="status" defaultValue={status} className="field py-2">
             {STATUS_FILTERS.map(([v, l]) => (
               <option key={v} value={v}>{l}</option>
@@ -52,7 +52,7 @@ export default async function Jelentkezok({ searchParams }) {
           </select>
         </label>
         <label>
-          <span className="block text-xs font-bold text-muted mb-1">Terem</span>
+          <span className="filter-label">Terem</span>
           <select name="hall" defaultValue={hall} className="field py-2">
             <option value="">Mind</option>
             {hallStats.map((h) => (

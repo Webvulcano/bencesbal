@@ -28,9 +28,10 @@ export default function PostalTable({ rows }) {
   }, [rows, q, status]);
 
   const selectable = visible.filter((r) => r.status === "paid");
-  const markPrinted = (value) =>
+  const todoRefs = rows.filter(MATCH.todo).map((r) => r.ref);
+  const markPrinted = (value, refs = chosen) =>
     startTransition(async () => {
-      await setPrinted(chosen, value);
+      await setPrinted(refs, value);
       setSelected(new Set());
     });
   const chosen = rows.filter((r) => selected.has(r.ref) && r.status === "paid").map((r) => r.ref);
@@ -52,13 +53,13 @@ export default function PostalTable({ rows }) {
 
   return (
     <>
-      <div className="bg-white border border-line/70 rounded-lg p-3 mb-3 flex flex-wrap gap-2 items-end">
-        <label className="flex-1 min-w-[220px]">
-          <span className="block text-xs font-bold text-muted mb-1">Keresés</span>
+      <div className="bg-white border border-line/70 rounded-lg p-3 mb-3 grid sm:grid-cols-[1fr_260px] gap-3 items-end">
+        <label>
+          <span className="filter-label">Keresés</span>
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Név, cím, település, GYBB-kód, jegyszám" className="field py-2" />
         </label>
         <label>
-          <span className="block text-xs font-bold text-muted mb-1">Státusz</span>
+          <span className="filter-label">Státusz</span>
           <select value={status} onChange={(e) => setStatus(e.target.value)} className="field py-2">
             <option value="todo">Postázandó (még nem nyomtatott)</option>
             <option value="printed">Nyomtatva</option>
@@ -91,9 +92,20 @@ export default function PostalTable({ rows }) {
           target="_blank"
           rel="noopener"
           aria-disabled={!chosen.length}
+          onClick={() => markPrinted(true)}
           className={`rounded-md font-bold text-sm px-4 py-2 ${chosen.length ? "bg-gold text-navy hover:brightness-105" : "bg-white/10 text-white/40 pointer-events-none"}`}
         >
-          ⤓ Kijelöltek letöltése PDF-ben
+          ⎙ Kijelöltek nyomtatása ({chosen.length})
+        </a>
+        <a
+          href={todoRefs.length ? pdfUrl(todoRefs) : undefined}
+          target="_blank"
+          rel="noopener"
+          aria-disabled={!todoRefs.length}
+          onClick={() => markPrinted(true, todoRefs)}
+          className={`rounded-md font-bold text-sm px-4 py-2 ${todoRefs.length ? "bg-white text-navy hover:bg-gold-soft" : "bg-white/10 text-white/40 pointer-events-none"}`}
+        >
+          ⎙ Összes nyomtatása ({todoRefs.length})
         </a>
         </div>
       </div>
@@ -102,20 +114,20 @@ export default function PostalTable({ rows }) {
         <table className="w-full text-sm">
           <thead className="text-left text-xs text-muted uppercase tracking-wide border-b border-line/60">
             <tr>
-              <th className="pl-4 py-2.5 w-8">
+              <th className="pl-4 pr-1 py-3 w-10 align-middle">
                 <input
                   type="checkbox"
                   aria-label="Összes látható kijelölése"
                   checked={allVisibleSelected}
                   disabled={!selectable.length}
                   onChange={toggleAll}
-                  className="size-4 accent-[var(--color-navy-2)] cursor-pointer"
+                  className="cb"
                 />
               </th>
-              <th className="px-4 py-2.5 font-semibold">Címzett</th>
-              <th className="px-4 py-2.5 font-semibold">Cím</th>
-              <th className="px-4 py-2.5 font-semibold">Jegyszámok</th>
-              <th className="px-4 py-2.5"></th>
+              <th className="px-4 py-3 font-semibold">Címzett</th>
+              <th className="px-4 py-3 font-semibold">Cím</th>
+              <th className="px-4 py-3 font-semibold">Jegyszámok</th>
+              <th className="px-4 py-3 align-middle"></th>
             </tr>
           </thead>
           <tbody>
@@ -135,7 +147,7 @@ export default function PostalTable({ rows }) {
                   onClick={() => paid && toggle(r.ref)}
                   className={`border-t border-line/40 ${paid ? "cursor-pointer hover:bg-gold-soft/40" : "text-muted"} ${on ? "bg-gold-soft/70" : ""}`}
                 >
-                  <td className="pl-4 py-2.5">
+                  <td className="pl-4 pr-1 py-3 align-middle">
                     <input
                       type="checkbox"
                       aria-label={`${r.name} kijelölése`}
@@ -143,26 +155,26 @@ export default function PostalTable({ rows }) {
                       disabled={!paid}
                       onChange={() => toggle(r.ref)}
                       onClick={(e) => e.stopPropagation()}
-                      className="size-4 accent-[var(--color-navy-2)] cursor-pointer disabled:cursor-default"
+                      className="cb"
                     />
                   </td>
-                  <td className="px-4 py-2.5">
+                  <td className="px-4 py-3 align-middle">
                     <p className="font-bold">{r.name}</p>
-                    <p className="font-mono text-xs">
-                      {r.ref}
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-0.5">
+                      <span className="font-mono text-xs tracking-wide">{r.ref}</span>
                       {r.printedAt && (
-                        <span className="ml-2 font-sans font-bold text-[11px] text-free border border-free/50 bg-free-soft rounded-full px-2 py-px">
-                          nyomtatva {printedDate(r.printedAt)}
+                        <span className="font-bold text-[11px] leading-none text-free border border-free/50 bg-free-soft rounded-full px-2 py-1">
+                          nyomtatva · {printedDate(r.printedAt)}
                         </span>
                       )}
-                    </p>
+                    </div>
                   </td>
-                  <td className="px-4 py-2.5">{r.address}</td>
-                  <td className="px-4 py-2.5 font-mono tabular-nums">
-                    {paid ? r.ticketNos.join(", ") : "—"}
-                    <span className="block font-sans text-xs text-muted">{r.count} db</span>
+                  <td className="px-4 py-3 align-middle">{r.address}</td>
+                  <td className="px-4 py-3 align-middle">
+                    <span className="font-bold tabular-nums">{paid ? r.ticketNos.join(", ") : "—"}</span>
+                    <span className="block text-xs text-muted">{r.count} db</span>
                   </td>
-                  <td className="px-4 py-2.5 text-right whitespace-nowrap">
+                  <td className="px-4 py-3 text-right whitespace-nowrap align-middle">
                     {paid ? (
                       <a
                         href={pdfUrl([r.ref])}

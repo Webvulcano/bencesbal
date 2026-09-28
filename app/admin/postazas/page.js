@@ -17,11 +17,6 @@ export default async function Postazas() {
     <>
       <div className="flex flex-wrap items-end justify-between gap-4 mb-2">
         <h1 className="font-serif text-gold text-3xl">Postázás</h1>
-        {ready.length > 0 && (
-          <a href="/admin/postazas/pdf?todo=1" target="_blank" rel="noopener" className="btn-primary text-base px-6 py-3">
-            ⤓ Összes még nem nyomtatott (PDF)
-          </a>
-        )}
       </div>
       <p className="text-muted mb-6 max-w-3xl">
         Címzettenként egy címlap (a név és cím a DL ablakos boríték ablakába esik — harmadolva hajtsd a lap szélén lévő jelek mentén),
