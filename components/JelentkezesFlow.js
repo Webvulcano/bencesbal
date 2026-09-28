@@ -304,7 +304,7 @@ export default function JelentkezesFlow() {
                   <div role="tooltip" className="absolute z-20 left-0 right-0 top-8 bg-navy text-white text-[14px] leading-snug rounded-md p-3.5 shadow-lg border-l-4 border-gold">
                     <p className="font-bold text-gold mb-1">Mi az a barátkód?</p>
                     <p>
-                      A fizetés végén <b>mindenki kap egy barátkódot</b> — ez ugyanaz, mint az utalás közleménye (pl. {REF_PREFIX}-1234).
+                      A fizetés végén <b>mindenki kap egy barátkódot</b> (pl. {REF_PREFIX}-1234).
                     </p>
                     <p className="mt-1.5">
                       Ezzel jelzed, hogy kikkel szeretnél <b>egy asztalhoz ülni</b>, akkor is, ha külön jelentkeztek. Ha egy barátod már jelentkezett, kérd el a kódját, és írd be ide.
@@ -478,13 +478,13 @@ export default function JelentkezesFlow() {
               <dl className="text-[15px] divide-y divide-line/60 border-y border-line/60 mb-5">
                 {[
                   ["Jegy", lines.join(", ")],
-                  ["Kapcsolattartó", `${f.contact.name} · ${f.contact.email}`],
+                  ["Kapcsolattartó", `${f.contact.name}\n${f.contact.email}\n${f.contact.phone}`],
                   ["Cím", `${f.address.zip} ${f.address.city}, ${f.address.street} ${f.address.no}${f.address.floor ? ", " + f.address.floor : ""}`],
                   ...(f.friendCodes.some(Boolean) ? [["Barátkód", f.friendCodes.filter(Boolean).join(", ")]] : []),
                 ].map(([k, v]) => (
                   <div key={k} className="grid grid-cols-[110px_1fr] gap-3 py-2">
                     <dt className="text-muted">{k}</dt>
-                    <dd className="font-semibold break-words">{v}</dd>
+                    <dd className="font-semibold break-words whitespace-pre-line">{v}</dd>
                   </div>
                 ))}
               </dl>
@@ -559,7 +559,7 @@ export default function JelentkezesFlow() {
           ) : (
             <>
               {stepIdx > 0 && (
-                <button type="button" className="btn-ghost" aria-label="Vissza" onClick={back}>
+                <button type="button" className="btn-ghost px-4 sm:px-5" aria-label="Vissza" onClick={back}>
                   ←
                 </button>
               )}
@@ -567,7 +567,7 @@ export default function JelentkezesFlow() {
                 <span className="block text-[12px] text-muted">Fizetendő</span>
                 <span className="block font-bold text-navy-2 text-lg truncate">{huf(total)}</span>
               </div>
-              <button type="button" className="btn-primary" onClick={next}>
+              <button type="button" className="btn-primary px-5 text-base sm:px-[30px] sm:text-lg" onClick={next}>
                 {step === "veglegesites" ? "Jelentkezés" : "Tovább"}
               </button>
             </>
