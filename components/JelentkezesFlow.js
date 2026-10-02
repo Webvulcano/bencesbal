@@ -557,9 +557,6 @@ export default function JelentkezesFlow() {
                 )}
               </dl>
               <div className="space-y-3.5">
-                <Check checked={f.paperTicket} onChange={(e) => set("paperTicket", e.target.checked)}>
-                  Papír alapú jegyet is kérek postán
-                </Check>
                 <div>
                   <Check checked={f.consent} onChange={(e) => set("consent", e.target.checked)}>
                     Az{" "}

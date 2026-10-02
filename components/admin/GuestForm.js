@@ -183,11 +183,7 @@ export default function GuestForm({ types, halls }) {
           </Section>
         )}
 
-        <Section title="Papírjegy és cím">
-          <label className="flex items-center gap-2.5 cursor-pointer mb-3">
-            <input type="checkbox" className="cb" checked={f.paperTicket} onChange={(e) => set("paperTicket", e.target.checked)} />
-            <span>Papír alapú jegyet postán kér</span>
-          </label>
+        <Section title="Cím">
           <div className="grid grid-cols-[100px_1fr] gap-3">
             <Input label="Irsz." required={f.paperTicket} error={errors.zip} inputMode="numeric" maxLength={4} value={f.address.zip} onChange={(e) => setIn("address", "zip", e.target.value)} />
             <Input label="Település" required={f.paperTicket} error={errors.city} value={f.address.city} onChange={(e) => setIn("address", "city", e.target.value)} />
