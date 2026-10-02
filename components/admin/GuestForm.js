@@ -46,7 +46,7 @@ export default function GuestForm({ types, halls }) {
     qty: {},
     contact: { name: "", email: "", phone: "" },
     companions: [],
-    paperTicket: false,
+    paperTicket: true,
     address: { zip: "", city: "", street: "", no: "", floor: "" },
     friendCodes: [""],
     markPaid: null,

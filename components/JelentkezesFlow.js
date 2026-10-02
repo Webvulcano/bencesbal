@@ -34,7 +34,7 @@ const EMPTY = {
   address: { zip: "", city: "", street: "", no: "", floor: "" },
   relation: { type: "", school: "", year: "", empCode: "" },
   companions: [],
-  paperTicket: false,
+  paperTicket: true,
   consent: false,
 };
 

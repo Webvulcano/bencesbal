@@ -19,8 +19,8 @@ export default async function Postazas() {
         <h1 className="font-serif text-gold text-3xl">Postázás</h1>
       </div>
       <p className="text-muted mb-6 max-w-3xl">
-        Címzettenként egy címlap (a név és cím a DL ablakos boríték ablakába esik — harmadolva hajtsd a lap szélén lévő jelek mentén),
-        utána a kivágható jegyek, oldalanként 4. Csak a <b className="text-black">fizetett</b>, papírjegyet kért jelentkezések kerülnek bele.
+        Címzettenként egy címlap (a név és cím a DL ablakos boríték ablakába esik — harmadolva hajtsd a lap szélén lévő jelek mentén).
+        Csak a <b className="text-black">fizetett</b> jelentkezések kerülnek bele.
       </p>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-3xl mb-6">
@@ -38,7 +38,7 @@ export default async function Postazas() {
       </div>
 
       {wants.length === 0 ? (
-        <p className="text-muted text-center py-16 bg-white border border-line/70 rounded-lg">Még senki nem kért papírjegyet.</p>
+        <p className="text-muted text-center py-16 bg-white border border-line/70 rounded-lg">Még nincs postázandó jelentkezés.</p>
       ) : (
         <PostalTable
           rows={[...ready, ...printed, ...waiting].map((r) => ({

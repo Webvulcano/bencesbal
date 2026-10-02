@@ -145,18 +145,25 @@ export default async function Jelentkezok({ searchParams }) {
               <footer className="flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 bg-[#fafaf7] border-t border-line/60">
                 <p className="text-xs text-muted">
                   {r.address.city ? `${r.address.zip} ${r.address.city}, ${r.address.street} ${r.address.no}${r.address.floor ? `, ${r.address.floor}` : ""}` : "nincs cím"}
-                  {r.paperTicket && <b className="text-navy-2"> · papírjegyet kér</b>}
                 </p>
                 <div className="flex gap-2">
                   {r.status === "pending" && (
-                    <ActionButton action={markPaid} ref_={r.ref} className="rounded-md bg-free text-white font-bold text-sm px-3.5 py-1.5 hover:brightness-110">
+                    <ActionButton
+                      action={markPaid}
+                      ref_={r.ref}
+                      confirm={{ title: "Biztos kifizette?", body: `${r.ref} · ${r.contact.name} · ${huf(r.total)}\n\nEzt már nem lehet visszavonni.`, label: "Igen, fizetve" }}
+                      className="rounded-md bg-free text-white font-bold text-sm px-3.5 py-1.5 hover:brightness-110">
                       ✓ Fizetve
                     </ActionButton>
                   )}
                   <ActionButton
                     action={cancelRegistration}
                     ref_={r.ref}
-                    confirm={`Biztosan lemondod: ${r.ref} (${r.contact.name}, ${r.members.length} fő)? A helyek felszabadulnak.`}
+                    confirm={
+                      r.status === "paid"
+                        ? { title: "Fizetett jelentkezés lemondása", body: `${r.ref} · ${r.contact.name} · ${r.members.length} fő · ${huf(r.total)}\n\nEz a jelentkezés már KI VAN FIZETVE. A helyek felszabadulnak, a visszautalást külön kell intézni.`, label: "Lemondom", tone: "danger", requireText: "Kifizette és most lemondom" }
+                        : { title: "Biztosan lemondod?", body: `${r.ref} · ${r.contact.name} · ${r.members.length} fő\n\nA helyek felszabadulnak.`, label: "Igen, lemondom", tone: "danger" }
+                    }
                     className="rounded-md border border-sold text-sold font-bold text-sm px-3.5 py-1.5 hover:bg-sold-soft"
                   >
                     Lemondás

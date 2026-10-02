@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 const SHEETS = [
   ["Résztvevők", "Soronként egy fő: ültetési csoport, jegyszám, név, terem, jegytípus, társaság, ültetési kérés. A társaság tagjai egymás alatt, a barátkóddal összekötött társaságok azonos csoportszámmal, egy színsávban."],
   ["Társaságok", "Soronként egy jelentkezés: kapcsolattartó elérhetősége, tagok, terem, összeg, státusz, dátumok."],
-  ["Postázás", "Fizetett, papírjegyet kért jelentkezések címe — borítékos címnyomtatáshoz."],
+  ["Postázás", "Fizetett jelentkezések címe — borítékos címnyomtatáshoz."],
 ];
 
 export default async function ExportPage() {
