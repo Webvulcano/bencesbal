@@ -1,7 +1,8 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { BANK, HALLS, PAYMENT_DEADLINE_DAYS, REF_PREFIX, RELATIONS, SCHOOLS, TICKET_TYPES } from "@/lib/constants";
+import { submitRegistration } from "@/app/(jelentkezes)/actions";
+import { bankRows, HALLS, memo, PAYMENT_DEADLINE_DAYS, REF_PREFIX, RELATIONS, SCHOOLS, TICKET_TYPES } from "@/lib/constants";
 
 const huf = (n) => new Intl.NumberFormat("hu-HU").format(n) + " Ft";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -38,9 +39,14 @@ const EMPTY = {
   consent: false,
 };
 
-async function fetchFree() {
+// Capacity lives only in the DB (admin can raise it), so the "/ N" label comes from here too.
+async function fetchSeats() {
   const { data, error } = await supabase.rpc("free_seats");
-  return error ? null : Object.fromEntries(data.map((h) => [h.hall_id, h.free]));
+  if (error) return null;
+  return {
+    free: Object.fromEntries(data.map((h) => [h.hall_id, h.free])),
+    capacity: Object.fromEntries(data.map((h) => [h.hall_id, h.capacity])),
+  };
 }
 
 function Field({ label, hint, error, required, children }) {
@@ -68,7 +74,7 @@ function Check({ type = "checkbox", checked, onChange, name, children }) {
 }
 
 function TicketCard({ t, qty, max, soldOut, onQty }) {
-  const meta = [soldOut && "ELFOGYOTT", t.requires && REQUIRES_LABEL[t.requires], t.maxPeople && `max. ${t.maxPeople} fő`].filter(Boolean);
+  const meta = [soldOut && "ELFOGYOTT", t.note, t.requires && REQUIRES_LABEL[t.requires], t.maxPeople && `max. ${t.maxPeople} fő`].filter(Boolean);
   const active = qty > 0;
   return (
     <div
@@ -130,17 +136,23 @@ export default function JelentkezesFlow() {
   const [copied, setCopied] = useState("");
   const [helpOpen, setHelpOpen] = useState(false);
   const [free, setFree] = useState(null);
+  const [capacity, setCapacity] = useState({});
   const [submitting, setSubmitting] = useState(false);
 
-  const loadFree = useCallback(() => fetchFree().then((m) => m && setFree(m)), []);
+  const applySeats = useCallback((s) => {
+    if (!s) return;
+    setFree(s.free);
+    setCapacity(s.capacity);
+  }, []);
+  const loadFree = useCallback(() => fetchSeats().then(applySeats), [applySeats]);
 
   useEffect(() => {
     let alive = true;
-    fetchFree().then((m) => alive && m && setFree(m));
+    fetchSeats().then((s) => alive && applySeats(s));
     return () => {
       alive = false;
     };
-  }, []);
+  }, [applySeats]);
 
   const count = Object.values(f.qty).reduce((a, b) => a + b, 0);
   const total = PUBLIC_TYPES.reduce((sum, t) => sum + (f.qty[t.id] || 0) * t.price, 0);
@@ -202,8 +214,9 @@ export default function JelentkezesFlow() {
 
   async function submit() {
     setSubmitting(true);
-    const { data, error } = await supabase.rpc("create_registration", {
-      payload: {
+    let res;
+    try {
+      res = await submitRegistration({
         qty: f.qty,
         contact: f.contact,
         address: f.address,
@@ -212,11 +225,13 @@ export default function JelentkezesFlow() {
         friendCodes: f.friendCodes.filter(Boolean),
         paperTicket: f.paperTicket,
         consent: f.consent,
-      },
-    });
+      });
+    } catch {
+      res = { error: "NETWORK" };
+    }
     setSubmitting(false);
-    if (error) {
-      const msg = error.message || "";
+    if (res.error) {
+      const msg = res.error;
       if (msg.startsWith("SOLD_OUT:")) {
         const h = HALLS[msg.split(":")[1]];
         setErrors({ submit: `Közben elfogyott a hely${h ? ` a(z) ${h.label}ben` : ""}. Kérjük, módosítsd a jegyeket.` });
@@ -228,7 +243,7 @@ export default function JelentkezesFlow() {
       }
       return;
     }
-    setRef(data);
+    setRef(res.ref);
     loadFree();
     setStepIdx(stepIdx + 1);
   }
@@ -301,7 +316,7 @@ export default function JelentkezesFlow() {
                       </span>
                       <span className={`flex items-center gap-1.5 text-[12.5px] font-semibold ${active ? "text-white/85" : "text-muted"}`}>
                         <span className={`size-2 rounded-full ${hallFree == null ? "bg-line" : hallFree > 0 ? "bg-free" : "bg-sold"}`} />
-                        {hallFree == null ? "…" : hallFree > 0 ? `${hallFree} szabad / ${h.capacity}` : "Betelt"}
+                        {hallFree == null ? "…" : hallFree > 0 ? `${hallFree} szabad / ${capacity[h.id]}` : "Betelt"}
                       </span>
                     </button>
                   );
@@ -590,21 +605,17 @@ export default function JelentkezesFlow() {
                   <p className="text-white text-[28px] font-bold leading-tight">{huf(total)}</p>
                 </div>
                 <dl className="divide-y divide-line/60 px-4 sm:px-6 text-[15px]">
-                  {[
-                    ["Kedvezm.", BANK.beneficiary],
-                    ["Számlaszám", `${BANK.account} (${BANK.bankName})`],
-                    ["IBAN", BANK.iban],
-                  ].map(([k, v]) => (
-                    <div key={k} className="grid grid-cols-[96px_1fr] gap-3 py-1.5 leading-snug">
+                  {bankRows().map(([k, v]) => (
+                    <div key={k} className="grid grid-cols-[124px_1fr] gap-3 py-1.5 leading-snug">
                       <dt className="text-muted">{k}</dt>
                       <dd className="font-bold break-words">{v}</dd>
                     </div>
                   ))}
-                  <div className="grid grid-cols-[96px_1fr] gap-3 py-2 items-center">
+                  <div className="grid grid-cols-[124px_1fr] gap-3 py-2 items-center">
                     <dt className="text-muted">Közlemény</dt>
                     <dd className="flex items-center gap-2">
-                      <span className="font-mono font-bold text-lg bg-gold-soft border border-gold rounded px-2.5 py-1 tracking-wider">{ref}</span>
-                      <button type="button" onClick={() => copy("ref", ref)} className="text-sm text-navy-2 font-bold hover:underline cursor-pointer">
+                      <span className="font-mono font-bold text-[15px] bg-gold-soft border border-gold rounded px-2.5 py-1 break-all">{memo(ref)}</span>
+                      <button type="button" onClick={() => copy("ref", memo(ref))} className="text-sm text-navy-2 font-bold hover:underline cursor-pointer">
                         {copied === "ref" ? "Másolva ✓" : "Másolás"}
                       </button>
                     </dd>
@@ -622,6 +633,9 @@ export default function JelentkezesFlow() {
                 </button>
               </div>
               <p className="text-[12.5px] text-muted text-center mt-1">Küldd el a barátaidnak, hogy egy asztalhoz ülhessetek.</p>
+              <p className="text-[12.5px] text-muted text-center mt-4">
+                Visszaigazolót küldtünk a(z) <b className="text-black break-all">{f.contact.email}</b> címre — nézd meg a spam mappát is.
+              </p>
             </>
           )}
         </div>

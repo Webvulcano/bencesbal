@@ -1,4 +1,5 @@
 import { loadAdminData } from "@/lib/admin-data";
+import CapacityForm from "@/components/admin/CapacityForm";
 
 export const dynamic = "force-dynamic";
 
@@ -41,6 +42,7 @@ export default async function AdminHome() {
               <div className="h-2.5 bg-line/40 rounded-full mt-3 overflow-hidden">
                 <div className={`h-full rounded-full ${pct >= 100 ? "bg-sold" : "bg-navy-2"}`} style={{ width: `${Math.min(pct, 100)}%` }} />
               </div>
+              <CapacityForm hallId={h.id} label={h.label} capacity={h.capacity} taken={h.taken} />
             </div>
           );
         })}
