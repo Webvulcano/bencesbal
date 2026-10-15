@@ -73,7 +73,8 @@ export default function GuestForm({ types, halls }) {
     const e = {};
     if (count < 1) e.qty = "Válassz legalább 1 jegyet.";
     if (!f.contact.name.trim()) e.name = "Kötelező";
-    if (f.contact.email && !EMAIL_RE.test(f.contact.email)) e.email = "Hibás email";
+    if (!f.contact.email.trim()) e.email = "Kötelező";
+    else if (!EMAIL_RE.test(f.contact.email)) e.email = "Hibás email";
     f.companions.forEach((c, i) => {
       if (!c.name.trim()) e[`c${i}n`] = "Név kell";
       if (c.email && !EMAIL_RE.test(c.email)) e[`c${i}e`] = "Hibás email";
@@ -148,10 +149,10 @@ export default function GuestForm({ types, halls }) {
         <Section title="Kapcsolattartó">
           <div className="grid sm:grid-cols-3 gap-3">
             <Input label="Név" required error={errors.name} value={f.contact.name} onChange={(e) => setIn("contact", "name", e.target.value)} />
-            <Input label="Email" type="email" error={errors.email} value={f.contact.email} onChange={(e) => setIn("contact", "email", e.target.value)} />
+            <Input label="Email" type="email" required error={errors.email} value={f.contact.email} onChange={(e) => setIn("contact", "email", e.target.value)} />
             <Input label="Telefon" type="tel" value={f.contact.phone} onChange={(e) => setIn("contact", "phone", e.target.value)} />
           </div>
-          <p className="text-xs text-muted mt-2">Az email nem kötelező — ha üres, a vendég nem kap automatikus levelet.</p>
+          <p className="text-xs text-muted mt-2">Ide megy minden email. Az email nélküli résztvevők jegyét is a kapcsolattartó kapja meg.</p>
         </Section>
       </div>
 

@@ -3,6 +3,7 @@ import { after } from "next/server";
 import { revalidatePath } from "next/cache";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { sendParticipantTickets, sendRegistrationEmail } from "@/lib/email/send";
+import { renderCancellation } from "@/lib/email/cancellation";
 import { renderPayment } from "@/lib/email/payment";
 import { renderTicket } from "@/lib/email/ticket";
 
@@ -17,19 +18,25 @@ export async function markPaid(formData) {
   const { data: before } = await getSupabaseAdmin().from("registrations").select("status").eq("ref", ref).single();
   await run("mark_paid", ref);
   // Only on the pending → paid transition, so a double click does not email twice.
-  if (before?.status === "pending")
-    after(async () => {
-      await sendRegistrationEmail(ref, renderPayment, "payment_email");
-      await sendParticipantTickets(ref, renderTicket);
-    });
+  if (before?.status === "pending") after(() => sendPaidEmails(ref));
+}
+
+async function sendPaidEmails(ref) {
+  await sendRegistrationEmail(ref, renderPayment, "payment_email");
+  await sendParticipantTickets(ref, renderTicket);
 }
 
 export async function cancelRegistration(formData) {
-  await run("cancel_registration", formData.get("ref"));
+  const ref = formData.get("ref");
+  const { data: before } = await getSupabaseAdmin().from("registrations").select("status").eq("ref", ref).single();
+  await run("cancel_registration", ref);
+  // Only unpaid registrations get the notice; paid ones are handled personally (refund).
+  if (before?.status === "pending") after(() => sendRegistrationEmail(ref, renderCancellation, "cancellation_email"));
 }
 
 const GUEST_ERRORS = {
   INVALID_CONTACT: "A kapcsolattartó neve kötelező.",
+  EMAIL_REQUIRED: "A kapcsolattartó email-címe kötelező.",
   INVALID_EMAIL: "Hibás email-cím.",
   ADDRESS_REQUIRED: "Papírjegyhez a teljes cím kötelező.",
   INVALID_QTY: "Válassz legalább 1 jegyet.",
@@ -45,6 +52,7 @@ export async function createGuest(payload) {
     return { error: GUEST_ERRORS[code] ?? "Nem sikerült menteni." };
   }
   revalidatePath("/admin", "layout");
+  if (payload.markPaid) after(() => sendPaidEmails(data));
   return { ref: data };
 }
 

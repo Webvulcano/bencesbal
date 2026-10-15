@@ -121,6 +121,10 @@ export default async function Jelentkezok({ searchParams }) {
                 {!r.paymentEmailSentAt && r.paymentEmailError && (
                   <span className="text-[11px] font-bold text-sold" title={r.paymentEmailError}>⚠ fizetés-email hiba</span>
                 )}
+                {r.cancellationEmailSentAt && <span className="text-[11px] text-muted" title={`Törlés-értesítő elküldve: ${dt(r.cancellationEmailSentAt)}`}>✉ törlés jelezve</span>}
+                {!r.cancellationEmailSentAt && r.cancellationEmailError && (
+                  <span className="text-[11px] font-bold text-sold" title={r.cancellationEmailError}>⚠ törlés-email hiba</span>
+                )}
               </div>
             </header>
 
