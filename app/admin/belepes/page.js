@@ -6,7 +6,7 @@ import { loginWithGoogle } from "./actions";
 export const dynamic = "force-dynamic";
 
 const ERRORS = {
-  jogosultsag: "Ez a Google-fiók nem jogosult az admin felületre.",
+  jogosultsag: "Nincs jogod belépni az admin felületre. Vedd fel a kapcsolatot az adminnal.",
   sikertelen: "A belépés nem sikerült, próbáld újra.",
 };
 
