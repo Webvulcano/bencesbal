@@ -1,4 +1,5 @@
 import Link from "next/link";
+import StatsChart from "@/components/admin/StatsChart";
 import { requireAdmin } from "@/lib/admin-auth";
 import { conversion, dailySeries, PERIODS, periodRange, topList } from "@/lib/stats";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
@@ -7,6 +8,7 @@ import { ANALYTICS_ERRORS, loadVisitorStats } from "@/lib/vercel-analytics";
 export const dynamic = "force-dynamic";
 
 const num = (n) => new Intl.NumberFormat("hu-HU").format(n);
+const huf = (n) => `${num(n)} Ft`;
 const regionName = new Intl.DisplayNames(["hu"], { type: "region" });
 const country = (code) => {
   try {
@@ -17,16 +19,6 @@ const country = (code) => {
 };
 const DEVICES = { desktop: "Számítógép", mobile: "Mobil", tablet: "Tablet" };
 const shortDate = (d) => `${Number(d.slice(5, 7))}.${Number(d.slice(8, 10))}.`;
-
-function Kpi({ label, value, sub }) {
-  return (
-    <div className="bg-white border border-line/70 rounded-lg px-5 py-4">
-      <p className="text-sm text-muted">{label}</p>
-      <p className="text-3xl font-bold text-navy-2 mt-1 tabular-nums">{value}</p>
-      {sub && <p className="text-sm text-muted mt-0.5">{sub}</p>}
-    </div>
-  );
-}
 
 function Top({ title, rows }) {
   const max = Math.max(1, ...rows.map((r) => r.visitors));
@@ -51,41 +43,6 @@ function Top({ title, rows }) {
   );
 }
 
-function DailyChart({ series }) {
-  const max = Math.max(1, ...series.map((d) => d.visitors));
-  const every = Math.ceil(series.length / 7);
-  return (
-    <div className="bg-white border border-line/70 rounded-lg px-5 py-4">
-      <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
-        <p className="font-bold">Naponta</p>
-        <p className="text-sm text-muted flex gap-4">
-          <span><span className="inline-block w-3 h-3 rounded-sm bg-navy-2 align-middle mr-1" />Látogatók</span>
-          <span><span className="inline-block w-3 h-3 rounded-sm bg-gold align-middle mr-1" />Jelentkezések</span>
-        </p>
-      </div>
-      <div className="flex items-end gap-px h-40">
-        {series.map((d) => (
-          <div
-            key={d.date}
-            title={`${d.date}: ${d.visitors} látogató, ${d.pageviews} oldalmegtekintés, ${d.registrations} jelentkezés`}
-            className="flex-1 h-full flex flex-col justify-end"
-          >
-            <div className="bg-navy-2 rounded-t-sm" style={{ height: `${(d.visitors / max) * 100}%` }} />
-            {d.registrations > 0 && <div className="bg-gold h-1.5 mt-px" />}
-          </div>
-        ))}
-      </div>
-      <div className="flex gap-px mt-1">
-        {series.map((d, i) => (
-          <span key={d.date} className="flex-1 text-xs text-muted text-center overflow-visible whitespace-nowrap">
-            {i % every === 0 ? shortDate(d.date) : ""}
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 export default async function Statisztika({ searchParams }) {
   await requireAdmin();
   const range = periodRange(Number((await searchParams).napok));
@@ -94,15 +51,20 @@ export default async function Statisztika({ searchParams }) {
     loadVisitorStats(range),
     getSupabaseAdmin()
       .from("registrations")
-      .select("created_at, tickets(count)")
+      .select("created_at, paid_at, total, tickets(count)")
       .neq("status", "cancelled")
-      .gte("created_at", `${range.since}T00:00:00Z`),
+      // Registered or paid in the period (an older registration can be paid now).
+      .or(`created_at.gte.${range.since}T00:00:00Z,paid_at.gte.${range.since}T00:00:00Z`),
   ]);
   if (regsRes.error) throw new Error(regsRes.error.message);
-  const regs = regsRes.data;
+  const from = `${range.since}T00:00:00Z`;
+  const inPeriod = (ts) => ts && new Date(ts) >= new Date(from);
+  const regs = regsRes.data.filter((r) => inPeriod(r.created_at));
+  const paid = regsRes.data.filter((r) => inPeriod(r.paid_at));
   const tickets = regs.reduce((a, r) => a + (r.tickets?.[0]?.count ?? 0), 0);
+  const paidAmount = paid.reduce((a, r) => a + (r.total ?? 0), 0);
   const ok = !visitors.error;
-  const series = dailySeries(range.dates, ok ? visitors.daily : [], regs);
+  const series = dailySeries(range.dates, ok ? visitors.daily : [], regsRes.data);
   const conv = ok ? conversion(regs.length, visitors.total.visitors) : null;
 
   return (
@@ -125,20 +87,27 @@ export default async function Statisztika({ searchParams }) {
 
       {!ok && (
         <p className="mb-6 rounded-md border border-sold bg-sold-soft text-sold px-4 py-3 text-sm font-semibold">
-          {ANALYTICS_ERRORS[visitors.error]} A jelentkezési adatok lent így is látszanak.
+          {ANALYTICS_ERRORS[visitors.error]}
+          {visitors.status ? ` (HTTP ${visitors.status})` : ""} A jelentkezési és fizetési adatok lent így is látszanak.
         </p>
       )}
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Kpi label="Látogatók" value={ok ? num(visitors.total.visitors) : "–"} sub={ok ? `${num(visitors.total.pageviews)} oldalmegtekintés` : null} />
-        <Kpi label="Jelentkezések" value={num(regs.length)} sub="lemondottak nélkül" />
-        <Kpi label="Eladott jegyek" value={num(tickets)} />
-        <Kpi label="Konverzió" value={conv === null ? "–" : `${conv.toLocaleString("hu-HU")}%`} sub="jelentkezés / látogató" />
-      </div>
-
-      <div className="mt-6">
-        <DailyChart series={series} />
-      </div>
+      <StatsChart
+        series={series}
+        defaultOn={ok ? ["visitors", "registrations"] : ["registrations", "payments"]}
+        metrics={[
+          { key: "visitors", label: "Látogatók", color: "#13336d", value: ok ? num(visitors.total.visitors) : "–", sub: ok ? `${num(visitors.total.pageviews)} oldalmegtekintés` : "nincs adat" },
+          { key: "registrations", label: "Jelentkezések", color: "#b8932a", value: num(regs.length), sub: `${num(tickets)} jegy · lemondottak nélkül` },
+          { key: "payments", label: "Fizetések", color: "#2e7d4f", value: num(paid.length), sub: huf(paidAmount) },
+        ]}
+        extra={
+          <div className="px-5 py-4 border-b border-line/50">
+            <p className="text-sm text-muted">Konverzió</p>
+            <p className="text-3xl font-bold text-navy-2 mt-1 tabular-nums">{conv === null ? "–" : `${conv.toLocaleString("hu-HU")}%`}</p>
+            <p className="text-sm text-muted mt-0.5">jelentkezés / látogató</p>
+          </div>
+        }
+      />
 
       {ok && (
         <div className="grid md:grid-cols-2 gap-3 mt-6">

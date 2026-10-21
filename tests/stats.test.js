@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { conversion, dailySeries, periodRange, topList } from "@/lib/stats";
+import { conversion, dailySeries, niceAxis, periodRange, topList } from "@/lib/stats";
 
 const NOW = new Date("2026-10-21T10:00:00Z");
 
@@ -25,9 +25,22 @@ describe("Napi sor", () => {
       [{ created_at: "2026-10-20T15:00:00+00:00" }, { created_at: "2026-10-20T18:00:00+00:00" }, { created_at: "2026-10-21T08:00:00+00:00" }],
     );
     expect(s).toHaveLength(7);
-    expect(s.find((d) => d.date === "2026-10-20")).toEqual({ date: "2026-10-20", visitors: 12, pageviews: 30, registrations: 2 });
-    expect(s.find((d) => d.date === "2026-10-21")).toEqual({ date: "2026-10-21", visitors: 0, pageviews: 0, registrations: 1 });
+    expect(s.find((d) => d.date === "2026-10-20")).toEqual({ date: "2026-10-20", visitors: 12, pageviews: 30, registrations: 2, payments: 0 });
+    expect(s.find((d) => d.date === "2026-10-21")).toEqual({ date: "2026-10-21", visitors: 0, pageviews: 0, registrations: 1, payments: 0 });
     expect(s[0].visitors).toBe(0);
+  });
+});
+
+describe("Fizetések naponta", () => {
+  it("a fizetés napjára számít, nem a jelentkezésére; fizetetlen nem számít", () => {
+    const { dates } = periodRange(7, NOW);
+    const s = dailySeries(dates, [], [
+      { created_at: "2026-10-01T10:00:00Z", paid_at: "2026-10-19T09:00:00Z" },
+      { created_at: "2026-10-19T10:00:00Z", paid_at: "2026-10-19T12:00:00Z" },
+      { created_at: "2026-10-20T10:00:00Z", paid_at: null },
+    ]);
+    expect(s.find((d) => d.date === "2026-10-19")).toMatchObject({ registrations: 1, payments: 2 });
+    expect(s.find((d) => d.date === "2026-10-20")).toMatchObject({ registrations: 1, payments: 0 });
   });
 });
 
@@ -44,5 +57,13 @@ describe("Toplista és konverzió", () => {
     expect(conversion(3, 200)).toBe(1.5);
     expect(conversion(1, 3)).toBe(33.3);
     expect(conversion(5, 0)).toBe(null);
+  });
+});
+
+describe("Tengely", () => {
+  it("3 egész lépés, ami lefedi a maximumot", () => {
+    expect(niceAxis(0)).toEqual({ top: 3, ticks: [0, 1, 2, 3] });
+    expect(niceAxis(2)).toEqual({ top: 3, ticks: [0, 1, 2, 3] });
+    expect(niceAxis(10)).toEqual({ top: 12, ticks: [0, 4, 8, 12] });
   });
 });
