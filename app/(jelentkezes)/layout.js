@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { Analytics } from "@vercel/analytics/next";
 import { EVENT } from "@/lib/constants";
 
 export default function JelentkezesLayout({ children }) {
@@ -23,6 +24,7 @@ export default function JelentkezesLayout({ children }) {
       />
 
       <div className="flex-1 min-h-0 flex flex-col relative">{children}</div>
+      <Analytics />
     </div>
   );
 }

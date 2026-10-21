@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
+import { track } from "@vercel/analytics";
 import { supabase } from "@/lib/supabase";
 import { submitRegistration } from "@/app/(jelentkezes)/actions";
 import { bankRows, HALLS, memo, PAYMENT_DEADLINE_DAYS, REF_PREFIX, RELATIONS, SCHOOLS, TICKET_TYPES } from "@/lib/constants";
@@ -246,6 +247,7 @@ export default function JelentkezesFlow() {
       return;
     }
     setRef(res.ref);
+    track("Jelentkezés elküldve");
     loadFree();
     setStepIdx(stepIdx + 1);
   }

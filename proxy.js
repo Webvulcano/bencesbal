@@ -54,6 +54,6 @@ export async function proxy(request) {
 
 export const config = {
   matcher: [
-    "/((?!_next|elozetes|images|fonts|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|webp|ico|woff2?|pdf)$).*)",
+    "/((?!_next|_vercel|elozetes|images|fonts|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|webp|ico|woff2?|pdf)$).*)",
   ],
 };
