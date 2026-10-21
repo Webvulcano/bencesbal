@@ -14,6 +14,7 @@ const ABOUT = {
   "recipients.test.js": ["Ki melyik jegyet kapja", "Fizetés után melyik jegy kinek az email-címére megy. Adatbázis és email nélkül, csak a döntési logika."],
   "actions.test.js": ["Admin gombok → emailek", "Fizetve / Lemondás / Kézi vendég felvétele: pontosan kinek, milyen email megy ki, mi van csatolva, és mi rögzül. Hamis adatbázissal és hamis levélküldővel — valódi email nem megy ki."],
   "emails.test.js": ["Email-szövegek", "A bál neve, az ügyfél sablonjai szerinti szövegek, egyes/többes szám, csatolt jegyek."],
+  "admin-access.test.js": ["Admin jogosultság", "Ki léphet be az adminba: csak Google-lel belépett, engedélyezett (ADMIN_EMAILS) email-cím. Más cím, jelszavas belépés vagy üres lista → nincs belépés."],
   "pdf.test.js": ["PDF-jegy", "Valódi PDF-belépőjegy készül, résztvevőnként 1 oldal, ékezetes nevekkel."],
 };
 

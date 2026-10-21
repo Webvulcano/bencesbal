@@ -1,6 +1,7 @@
 "use server";
 import { after } from "next/server";
 import { revalidatePath } from "next/cache";
+import { requireAdmin } from "@/lib/admin-auth";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { sendParticipantTickets, sendRegistrationEmail } from "@/lib/email/send";
 import { renderCancellation } from "@/lib/email/cancellation";
@@ -14,6 +15,7 @@ async function run(fn, ref) {
 }
 
 export async function markPaid(formData) {
+  await requireAdmin();
   const ref = formData.get("ref");
   const { data: before } = await getSupabaseAdmin().from("registrations").select("status").eq("ref", ref).single();
   await run("mark_paid", ref);
@@ -27,11 +29,12 @@ async function sendPaidEmails(ref) {
 }
 
 export async function cancelRegistration(formData) {
+  await requireAdmin();
   const ref = formData.get("ref");
   const { data: before } = await getSupabaseAdmin().from("registrations").select("status").eq("ref", ref).single();
   await run("cancel_registration", ref);
-  // Only unpaid registrations get the notice; paid ones are handled personally (refund).
-  if (before?.status === "pending") after(() => sendRegistrationEmail(ref, renderCancellation, "cancellation_email"));
+  // Pending and paid alike get the notice; skipping already-cancelled ones keeps a double click from emailing twice.
+  if (before && before.status !== "cancelled") after(() => sendRegistrationEmail(ref, renderCancellation, "cancellation_email"));
 }
 
 const GUEST_ERRORS = {
@@ -44,6 +47,7 @@ const GUEST_ERRORS = {
 };
 
 export async function createGuest(payload) {
+  await requireAdmin();
   const { data, error } = await getSupabaseAdmin().rpc("admin_create_registration", { payload });
   if (error) {
     const [code, arg] = error.message.split(":");
@@ -57,12 +61,14 @@ export async function createGuest(payload) {
 }
 
 export async function setPrinted(refs, printed) {
+  await requireAdmin();
   const { error } = await getSupabaseAdmin().rpc("set_printed", { p_refs: refs, p_printed: printed });
   if (error) throw new Error(error.message);
   revalidatePath("/admin/postazas");
 }
 
 export async function setCapacity(_prev, formData) {
+  await requireAdmin();
   const hallId = formData.get("hall");
   const capacity = Number(formData.get("capacity"));
   if (!Number.isInteger(capacity) || capacity < 0 || capacity > 2000) return { error: "Adj meg egy egész számot (0–2000)." };

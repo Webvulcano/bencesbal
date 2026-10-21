@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tervezett Jegyárak és Kategóriák – XIV. Győri Bencés Bál 2027</title>
+  <meta name="description" content="Előzetes tájékoztató a XIV. Győri Bencés Bál tervezett jegyárairól, támogatói kategóriáiról és férőhelyeiről.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --gold-primary: #b5952f;
+      --gold-dark: #8c6f1a;
+      --gold-light: #f3d573;
+      --gold-subtle: #fcfbf6;
+      --gold-border: #d4af37;
+      --bg-white: #ffffff;
+      --text-dark: #222222;
+      --text-muted: #555555;
+      --font-heading: 'Cinzel', 'Playfair Display', Georgia, serif;
+      --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background: radial-gradient(circle at top center, #ffffff 0%, #faf8f2 100%);
+      color: var(--text-dark);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+      padding: 40px 16px;
+      line-height: 1.6;
+    }
+
+    .landing-card {
+      max-width: 1100px;
+      width: 100%;
+      background: #ffffff;
+      border: 2px solid var(--gold-primary);
+      border-radius: 24px;
+      padding: 50px 40px;
+      box-shadow: 0 20px 60px rgba(181, 149, 47, 0.16);
+      position: relative;
+    }
+
+    /* Visszalépő felső sáv */
+    .top-nav-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .nav-pill-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--gold-dark);
+      text-decoration: none;
+      font-size: 0.95rem;
+      font-weight: 700;
+      background: #faf8f3;
+      border: 1px solid var(--gold-border);
+      padding: 8px 18px;
+      border-radius: 20px;
+      transition: all 0.2s ease;
+    }
+
+    .nav-pill-btn:hover {
+      background: var(--gold-primary);
+      color: #ffffff;
+    }
+
+    .sub-badge {
+      display: inline-block;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-size: 0.85rem;
+      color: var(--gold-dark);
+      border: 1.5px solid var(--gold-primary);
+      padding: 6px 22px;
+      border-radius: 30px;
+      margin-bottom: 16px;
+      background: rgba(212, 175, 55, 0.08);
+      font-weight: 700;
+    }
+
+    h1 {
+      font-family: var(--font-heading);
+      font-size: 2.4rem;
+      font-weight: 700;
+      color: var(--gold-dark);
+      text-align: center;
+      letter-spacing: 0.5px;
+    }
+
+    .subtitle {
+      font-style: italic;
+      margin-top: -10px;
+      font-size: 1.1rem;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+      text-align: center;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    /* Kiemelt Figyelmeztető sáv: MÉG NEM LEHET JEGYET VENNI */
+    .not-for-sale-alert {
+      background: #fff8f8;
+      border: 2px solid #d9534f;
+      border-radius: 14px;
+      padding: 22px 25px;
+      text-align: center;
+      margin-bottom: 35px;
+      box-shadow: 0 6px 20px rgba(217, 83, 79, 0.12);
+    }
+
+    .alert-tag {
+      display: inline-block;
+      background: #d9534f;
+      color: #ffffff;
+      font-size: 0.82rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      padding: 4px 16px;
+      border-radius: 20px;
+      margin-bottom: 10px;
+    }
+
+    .not-for-sale-alert h2 {
+      font-size: 1.4rem;
+      color: #b52b27;
+      margin-bottom: 8px;
+      font-family: var(--font-heading);
+    }
+
+    .not-for-sale-alert p {
+      font-size: 1rem;
+      color: #333333;
+      margin: 0;
+      line-height: 1.6;
+    }
+
+    .not-for-sale-alert strong {
+      color: #b52b27;
+    }
+
+    /* Férőhely Számlálók */
+    .counters-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 22px;
+      max-width: 780px;
+      margin: 0 auto 35px auto;
+    }
+
+    .counter-box {
+      background: #fffdf7;
+      border: 1.5px solid var(--gold-primary);
+      border-radius: 14px;
+      padding: 22px 18px;
+      text-align: center;
+      box-shadow: 0 4px 15px rgba(181, 149, 47, 0.06);
+    }
+
+    .counter-label {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--gold-dark);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .counter-num {
+      font-size: 2.4rem;
+      font-weight: 800;
+      color: var(--gold-dark);
+      line-height: 1.2;
+      margin-bottom: 3px;
+    }
+
+    .counter-sub {
+      font-size: 0.88rem;
+      color: var(--gold-dark);
+      font-weight: 600;
+    }
+
+    /* Kedvezményes időszak */
+    .early-bird-notice {
+      background: #fffdf5;
+      border: 2px dashed var(--gold-primary);
+      border-radius: 14px;
+      padding: 18px 22px;
+      text-align: center;
+      margin-bottom: 40px;
+      color: var(--text-dark);
+    }
+
+    .early-bird-notice strong {
+      color: var(--gold-dark);
+      font-size: 1.15rem;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    /* Jegyek Grid */
+    .tickets-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+      margin-bottom: 45px;
+    }
+
+    .ticket-card {
+      background: #ffffff;
+      border: 1.5px solid var(--gold-border);
+      border-radius: 16px;
+      padding: 28px 24px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      transition: transform 0.25s ease;
+    }
+
+    .ticket-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 25px rgba(181, 149, 47, 0.14);
+    }
+
+    .ticket-card.featured {
+      background: #fffef9;
+      border: 2px solid var(--gold-primary);
+      box-shadow: 0 8px 24px rgba(181, 149, 47, 0.1);
+    }
+
+    .ticket-badge {
+      display: inline-block;
+      align-self: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 4px 14px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+    }
+
+    .badge-gold {
+      background: var(--gold-primary);
+      color: #ffffff;
+    }
+
+    .badge-silver {
+      background: #8e9094;
+      color: #ffffff;
+    }
+
+    .badge-early {
+      background: var(--gold-dark);
+      color: #ffffff;
+    }
+
+    .ticket-name {
+      font-family: var(--font-heading);
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--gold-dark);
+      margin-bottom: 12px;
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .ticket-price {
+      font-size: 2.1rem;
+      font-weight: 800;
+      color: var(--gold-dark);
+      margin-bottom: 12px;
+    }
+
+    .ticket-price span {
+      font-size: 1.05rem;
+      font-weight: 500;
+    }
+
+    .ticket-desc {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      line-height: 1.6;
+      margin-bottom: 22px;
+      flex-grow: 1;
+    }
+
+    /* INAKTÍV / ZÁRT ÁLLAPOT JELZÉS (A JEGY MÉG NEM VEHETŐ MEG) */
+    .ticket-status-lock {
+      background: #f7f5ef;
+      border: 1.5px solid #d9ccb0;
+      color: #6a6455;
+      font-weight: 700;
+      font-size: 0.92rem;
+      padding: 12px 16px;
+      border-radius: 25px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: not-allowed;
+      user-select: none;
+    }
+
+    /* Tartalom doboz */
+    .inclusions-box {
+      background: #faf8f3;
+      border: 1.5px solid var(--gold-border);
+      border-radius: 16px;
+      padding: 30px;
+      margin-bottom: 40px;
+    }
+
+    .inclusions-title {
+      font-family: var(--font-heading);
+      color: var(--gold-dark);
+      font-size: 1.35rem;
+      font-weight: 700;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .inclusions-list {
+      list-style: none;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 12px 20px;
+      font-size: 0.98rem;
+      color: #333333;
+    }
+
+    .inclusions-list li {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+    }
+
+    .inclusions-list li::before {
+      content: '✓';
+      color: var(--gold-primary);
+      font-weight: 800;
+      font-size: 1.1rem;
+    }
+
+    /* Alsó navigációs blokk */
+    .bottom-cta-box {
+      background: #ffffff;
+      padding: 35px 25px;
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .bottom-cta-box h3 {
+      font-family: var(--font-heading);
+      font-size: 1.5rem;
+      color: var(--gold-dark);
+      margin-bottom: 10px;
+    }
+
+    .bottom-cta-box p {
+      color: #444444;
+      font-size: 1rem;
+      max-width: 650px;
+      margin: 0 auto 22px auto;
+    }
+
+    .btn-return-gold {
+      margin-left: 10px;
+      display: inline-block;
+      background: linear-gradient(135deg, var(--gold-primary), var(--gold-dark));
+      color: #ffffff !important;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 1.15rem;
+      padding: 14px 38px;
+      border-radius: 30px;
+      transition: all 0.25s ease;
+      box-shadow: 0 6px 20px rgba(181, 149, 47, 0.3);
+    }
+
+    .btn-return-gold:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(181, 149, 47, 0.4);
+      background: linear-gradient(135deg, #c5a338, #7a5e12);
+    }
+
+    .footer-note {
+      margin-top: 35px;
+      font-size: 0.92rem;
+      color: #777777;
+      border-top: 1px solid #eeeeee;
+      padding-top: 22px;
+      text-align: center;
+      line-height: 1.7;
+    }
+
+    .footer-note a {
+      color: var(--gold-dark);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .footer-note a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+      .landing-card {
+        padding: 30px 18px;
+        border-radius: 18px;
+      }
+      h1 {
+        font-size: 1.9rem;
+      }
+      .tickets-grid {
+        grid-template-columns: 1fr;
+      }
+      .btn-return-gold {
+        font-size: 1.05rem;
+        padding: 13px 25px;
+        width: 100%;
+        box-sizing: border-box;
+      }
+      .top-nav-bar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .nav-pill-btn {
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="landing-card">
+    
+    <!-- FELSŐ VISSZALÉPŐ SÁV -->
+    <div class="top-nav-bar">
+      <a href="../" class="nav-pill-btn">
+        ← Vissza a Jelentkezési Kezdőlapra
+      </a>
+      <a href="https://gyoribencesbal.hu" class="nav-pill-btn">
+        ← Bál Főoldala
+      </a>
+    </div>
+
+    <div style="text-align: center;">
+      <div class="sub-badge">XIV. Győri Bencés Bál • 2027. február 6–7.</div>
+      <h1>TERVEZETT JEGYÁRAK ÉS KATEGÓRIÁK</h1>
+      <p class="subtitle">Előzetes tájékoztató az érdeklődők számára a tervezett jegytípusokról, férőhelyekről és szolgáltatásokról.</p>
+    </div>
+
+    <!-- KIEMELT FIGYELMEZTETÉS: A JEGYVÁSÁRLÁS MÉG NEM KEZDŐDÖTT MEG -->
+    <div class="not-for-sale-alert">
+      <span class="alert-tag">Fontos Figyelmeztetés</span>
+      <h2>A jegyvásárlás még NEM kezdődött meg!</h2>
+      <p>
+        Az alábbi jegyárak és kategóriák <strong>kizárólag előzetes tájékoztatásul szolgálnak</strong>.<br>
+        A jegyértékesítés és az asztalfoglalási felület hivatalos megnyitása: <strong>2026. október 25.</strong><br>
+        <em>Jelenleg sem online, sem más formában nem lehetséges jegyet vásárolni vagy lefoglalni.</em>
+      </p>
+    </div>
+
+    <!-- FÉRŐHELYEK -->
+
+    <!-- KORAI KEDVEZMÉNY SÁV -->
+    <div class="early-bird-notice">
+      <strong>⭐ GYORS FOGLALÁSI KEDVEZMÉNYES IDŐSZAK: 2026. 10. 25. – 11. 15.</strong>
+      <span>A jegyértékesítés megnyílását követően, a megadott időszakban Early Bird áron foglalhat helyet!</span>
+    </div>
+
+    <!-- 6 JEGYTÍPUS KÁRTYÁK (ZÁRT / NEM VÁSÁROLHATÓ ÁLLAPOTBAN) -->
+<div class="tickets-grid">
+
+  <div class="ticket-card featured">
+    <h3 class="ticket-name">Arany Támogatói Dísztermi Jegy</h3>
+    <div class="ticket-price">80.000 <span>Ft/fő</span></div>
+    <p class="ticket-desc">Dísztermi hely, arany támogatói elismeréssel</p>
+    <div class="ticket-status-lock">🔒 Jegyvásárlás kezdete: 2026. okt. 25.</div>
+  </div>
+
+  <div class="ticket-card featured">
+    <h3 class="ticket-name">Arany Támogatói Különtermi Jegy</h3>
+    <div class="ticket-price">80.000 <span>Ft/fő</span></div>
+    <p class="ticket-desc">Különtermi hely, arany támogatói elismeréssel</p>
+    <div class="ticket-status-lock">🔒 Jegyvásárlás kezdete: 2026. okt. 25.</div>
+  </div>
+
+  <div class="ticket-card">
+    <h3 class="ticket-name">Ezüst Támogatói Dísztermi Jegy</h3>
+    <div class="ticket-price">70.000 <span>Ft/fő</span></div>
+    <p class="ticket-desc">Dísztermi hely, ezüst támogatói elismeréssel</p>
+    <div class="ticket-status-lock">🔒 Jegyvásárlás kezdete: 2026. okt. 25.</div>
+  </div>
+
+  <div class="ticket-card">
+    <h3 class="ticket-name">Ezüst Támogatói Különtermi Jegy</h3>
+    <div class="ticket-price">70.000 <span>Ft/fő</span></div>
+    <p class="ticket-desc">Különtermi hely, ezüst támogatói elismeréssel</p>
+    <div class="ticket-status-lock">🔒 Jegyvásárlás kezdete: 2026. okt. 25.</div>
+  </div>
+
+  <div class="ticket-card">
+    <h3 class="ticket-name">Dísztermi Jegy (Early Bird)</h3>
+    <div class="ticket-price">50.000 <span>Ft/fő</span></div>
+    <p class="ticket-desc">érvényes 2026.10.25-11.15 közötti elővételi időszakban</p>
+    <div class="ticket-status-lock">🔒 Jegyvásárlás kezdete: 2026. okt. 25.</div>
+  </div>
+
+  <div class="ticket-card">
+    <h3 class="ticket-name">Különtermi Jegy (Early Bird)</h3>
+    <div class="ticket-price">40.000 <span>Ft/fő</span></div>
+    <p class="ticket-desc">érvényes 2026.10.25-11.15 közötti elővételi időszakban</p>
+    <div class="ticket-status-lock">🔒 Jegyvásárlás kezdete: 2026. okt. 25.</div>
+  </div>
+
+</div>
+
+    <!-- A BELÉPŐJEGY TARTALMA -->
+    <div class="inclusions-box">
+      <h3 class="inclusions-title">✨ A belépőjegy tartalmazza:</h3>
+      <ul class="inclusions-list">
+        <li>Üdvözlőitalt és ünnepélyes vendégfogadást</li>
+        <li>Többfogásos prémium svédasztalos díszvacsorát</li>
+        <li>Éjféli büfét és tradicionális gasztronómiai kínálatot</li>
+        <li>A Pesty Party Showband előadását a nagyszínpadon</li>
+        <li>Magyar és horvát népzenei koncertet (Óbecsei Tisza Tamburazenekar)</li>
+        <li>Néptáncbemutatót, öregdiákjaink előadásában</li>
+        <li>Cseh Tamás-emlékestet és kísérő zenei programokat</li>
+        <li>Belépést a felújított Jedlik Ányos-emlékterembe</li>
+        <li>A Videókabin és Bencés arcok emlékfal használatát</li>
+      </ul>
+    </div>
+
+    <!-- ALSÓ VISSZALÉPŐ BLOKK -->
+    <div class="bottom-cta-box">
+      <a href="../" class="btn-return-gold">
+        ← Vissza a Jegyvásárlás Oldalára
+      </a>
+    </div>
+
+    <!-- LÁBLÉC -->
+    <div class="footer-note">
+      Kérdés vagy előzetes felajánlás esetén írjon nekünk: <a href="mailto:gyoribencesbal@gmail.com">gyoribencesbal@gmail.com</a>
+      <br>© 2026–2027 Bencés Nevelésért Alapítvány
+    </div>
+
+  </div>
+
+</body>
+</html>

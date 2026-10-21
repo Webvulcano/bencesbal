@@ -1,9 +1,11 @@
+import { isAdmin } from "@/lib/admin-auth";
 import { loadAdminData } from "@/lib/admin-data";
 import { buildPostalPdf } from "@/lib/pdf/postal";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request) {
+  if (!(await isAdmin())) return new Response("Nincs jogosultság.", { status: 401 });
   const refs = request.nextUrl.searchParams.getAll("ref");
   const { registrations } = await loadAdminData();
   const list = registrations.filter((r) => r.status === "paid" && r.paperTicket && (refs.length === 0 || refs.includes(r.ref)));

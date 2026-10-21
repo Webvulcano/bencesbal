@@ -1,36 +1,70 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Győri Bencés Bál — jelentkezés
 
-## Getting Started
+Next.js + Supabase. Éles DB: Supabase projekt `naaekjopbqodntvvpghi`. Lokálisan Dockerben futó Supabase.
 
-First, run the development server:
+## Lokális fejlesztés
+
+Egy parancs az egészhez:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run local
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Elindítja a Docker Desktopot (ha nem fut), a lokális Supabase-t, majd az appot: **http://localhost:3000** (admin: `/admin`). Leállítás: Ctrl+C, utána `npm run db:stop`.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+Külön-külön is megy: `npm run db:start` (DB, első indításkor migrációk + seed), majd `npm run dev` (app).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Studio (DB admin felület): http://127.0.0.1:54323
+- `.env.local` → lokális DB. Felhős (éles) kulcsok: `.env.cloud.local` (nem töltődik be).
+- Email lokálisan is a Gmailen megy ki → a seed-adatok mind `@example.com` címek.
 
-## Learn More
+| Parancs | Mit csinál |
+|---|---|
+| `npm run db:start` / `db:stop` | lokális DB indít / leállít (az adat megmarad) |
+| `npm run db:reset` | DB törlése és újraépítése: migrációk + `supabase/seed.sql` |
+| `npm run db:status` | URL-ek, kulcsok |
+| `npm run db:push` | új migrációk felküldése az ÉLES DB-re |
 
-To learn more about Next.js, take a look at the following resources:
+## Kapcsoló: jelentkezés nyitva / zárva
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+`JELENTKEZES_NYITVA=true` → jelentkező felület. Bármi más / hiányzik → előzetes oldal (`public/elozetes/`). Vercelen átírás után redeploy kell.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Admin belépés (Google)
 
-## Deploy on Vercel
+`/admin` és minden alútvonala (oldalak, Excel/PDF letöltés, gombok) csak Google-fiókkal érhető el, és csak az engedélyezett címekkel. A jelentkező felülethez nem kell belépés.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **`ADMIN_EMAILS`** — engedélyezett Google-címek, vesszővel elválasztva (pl. `lehel200@gmail.com`). **Vercelen be kell állítani** (Settings → Environment Variables → Production), utána redeploy. Üres / hiányzik → senki nem léphet be.
+- Belépés: `/admin/belepes` → „Belépés Google-fiókkal”. Kilépés gomb a menüben.
+- Más Google-fiók is végigmehet a Google-lépésen, de az app kilépteti („nem jogosult”), és a DB-hez a saját sessionjével semmit nem ér el (RLS, nincs policy).
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Beállítás (egyszer)
+
+1. **Google Cloud Console** → APIs & Services
+   - OAuth consent screen: External, app név + support email.
+   - Credentials → Create credentials → OAuth client ID → *Web application*.
+   - Authorized redirect URIs (a Supabase callbackjei, nem az appé):
+     - `https://naaekjopbqodntvvpghi.supabase.co/auth/v1/callback`
+     - `http://127.0.0.1:54321/auth/v1/callback`
+   - Client ID + Client Secret kimásolása.
+2. **Supabase dashboard (éles)**
+   - Authentication → Sign In / Providers → Google: bekapcsol, Client ID + Secret.
+   - Authentication → Sign In / Providers → Email: kikapcsol (csak Google-belépés legyen).
+   - Authentication → URL Configuration: Site URL `https://jelentkezes.gyoribencesbal.hu`, Redirect URLs: `https://jelentkezes.gyoribencesbal.hu/admin/auth/callback`.
+3. **Lokál**: a projekt gyökerében `.env` fájl (gitignore-olva) a Supabase CLI-nek:
+   ```
+   SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID=...
+   SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_SECRET=...
+   ```
+   majd `npm run db:stop && npm run db:start`. A `.env.local`-ban `ADMIN_EMAILS=...`. Lokálisan a `http://localhost:3000/admin/belepes` címen lépj be.
+4. **Vercel**: `ADMIN_EMAILS` (Production) → redeploy. A régi `ADMIN_PASSWORD` törölhető.
+
+## Hibajavítás menete (éles hiba)
+
+1. Hiba reprodukálása lokálisan (`db:reset` után tiszta állapotból).
+2. Javítás. Ha DB-t érint: **új** migráció — `npx supabase migration new <nev>`. Régi, már élesre ment migrációt ne írj át.
+3. `npm run db:reset` + `npm test` + kézi teszt.
+4. Élesítés:
+   - DB: egyszer `npx supabase login` és `npx supabase link --project-ref naaekjopbqodntvvpghi`, utána `npm run db:push`.
+   - Kód: git push → Vercel deploy.
+
+A migrációs fájlnevek időbélyege egyezik az élesben rögzített verziókkal — így a `db push` csak az újakat küldi fel.

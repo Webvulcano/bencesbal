@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/admin-auth";
 import { loadAdminData } from "@/lib/admin-data";
 import CapacityForm from "@/components/admin/CapacityForm";
 
@@ -16,6 +17,7 @@ function Kpi({ label, value, sub }) {
 }
 
 export default async function AdminHome() {
+  await requireAdmin();
   const { stats, hallStats } = await loadAdminData();
   return (
     <>

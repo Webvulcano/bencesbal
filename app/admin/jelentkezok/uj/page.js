@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/admin-auth";
 import Link from "next/link";
 import GuestForm from "@/components/admin/GuestForm";
 import { loadAdminData } from "@/lib/admin-data";
@@ -6,6 +7,7 @@ import { getSupabaseAdmin } from "@/lib/supabase-admin";
 export const dynamic = "force-dynamic";
 
 export default async function UjVendeg() {
+  await requireAdmin();
   const [{ data: types, error }, { hallStats }] = await Promise.all([
     getSupabaseAdmin().from("ticket_types").select("id, hall_id, label, price, is_public, sort").order("sort"),
     loadAdminData(),

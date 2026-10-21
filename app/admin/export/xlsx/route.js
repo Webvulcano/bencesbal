@@ -1,9 +1,11 @@
+import { isAdmin } from "@/lib/admin-auth";
 import { loadAdminData } from "@/lib/admin-data";
 import { buildXlsx } from "@/lib/export-xlsx";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
+  if (!(await isAdmin())) return new Response("Nincs jogosultság.", { status: 401 });
   const buf = await buildXlsx(await loadAdminData());
   const date = new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Budapest" });
   return new Response(buf, {

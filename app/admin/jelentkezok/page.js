@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/admin-auth";
 import Link from "next/link";
 import ActionButton from "@/components/admin/ActionButton";
 import { loadAdminData, STATUS } from "@/lib/admin-data";
@@ -16,6 +17,7 @@ const STATUS_FILTERS = [
 ];
 
 export default async function Jelentkezok({ searchParams }) {
+  await requireAdmin();
   const { status = "", hall = "", source = "", q = "" } = await searchParams;
   const { registrations, hallStats } = await loadAdminData();
   const needle = q.trim().toLowerCase();
@@ -103,6 +105,11 @@ export default async function Jelentkezok({ searchParams }) {
                 {r.linked.length > 0 && (
                   <p className="text-sm mt-1">
                     <span className="text-gold font-bold">Együtt:</span> {r.linked.map((l) => `${l.ref} (${l.name})`).join(", ")}
+                  </p>
+                )}
+                {r.seatingNote && (
+                  <p className="text-sm mt-1 whitespace-pre-line break-words">
+                    <span className="text-gold font-bold">Ültetés:</span> {r.seatingNote}
                   </p>
                 )}
               </div>

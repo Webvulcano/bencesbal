@@ -31,6 +31,7 @@ const STEP_TITLES = {
 const EMPTY = {
   qty: {},
   friendCodes: [""],
+  seatingNote: "",
   contact: { name: "", email: "", phone: "" },
   address: { zip: "", city: "", street: "", no: "", floor: "" },
   relation: { type: "", school: "", year: "", empCode: "" },
@@ -223,6 +224,7 @@ export default function JelentkezesFlow() {
         relation: f.relation,
         companions: f.companions,
         friendCodes: f.friendCodes.filter(Boolean),
+        seatingNote: f.seatingNote.trim(),
         paperTicket: f.paperTicket,
         consent: f.consent,
       });
@@ -423,6 +425,19 @@ export default function JelentkezesFlow() {
                 )}
                 <span className="block text-[12.8px] font-semibold text-muted mt-1.5">Barátaid közlemény-kódjai — így egy asztalhoz ültetünk titeket.</span>
               </div>
+              <div className="mt-5">
+                <label htmlFor="seatingNote" className="font-bold">
+                  Megjegyzés az ültetéshez <span className="font-normal text-muted text-sm">(nem kötelező)</span>
+                </label>
+                <textarea
+                  id="seatingNote"
+                  className="field mt-1.5 min-h-24 resize-y"
+                  maxLength={500}
+                  placeholder="pl. a Kovács családdal szeretnénk egy asztalhoz ülni"
+                  value={f.seatingNote}
+                  onChange={(e) => set("seatingNote", e.target.value)}
+                />
+              </div>
             </>
           )}
 
@@ -546,6 +561,7 @@ export default function JelentkezesFlow() {
                   ["Kapcsolattartó", `${f.contact.name}\n${f.contact.email}\n${f.contact.phone}`],
                   ["Cím", `${f.address.zip} ${f.address.city}, ${f.address.street} ${f.address.no}${f.address.floor ? ", " + f.address.floor : ""}`],
                   ...(f.friendCodes.some(Boolean) ? [["Barátkód", f.friendCodes.filter(Boolean).join(", ")]] : []),
+                  ...(f.seatingNote.trim() ? [["Ültetés", f.seatingNote.trim()]] : []),
                 ].map(([k, v]) => (
                   <div key={k} className="grid grid-cols-[110px_1fr] gap-3 py-2">
                     <dt className="text-muted">{k}</dt>

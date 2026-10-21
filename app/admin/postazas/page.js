@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/admin-auth";
 import PostalTable from "@/components/admin/PostalTable";
 import { loadAdminData } from "@/lib/admin-data";
 
@@ -6,6 +7,7 @@ export const dynamic = "force-dynamic";
 const addr = (a) => `${a.zip} ${a.city}, ${a.street} ${a.no}${a.floor ? `, ${a.floor}` : ""}`;
 
 export default async function Postazas() {
+  await requireAdmin();
   const { registrations } = await loadAdminData();
   const wants = registrations.filter((r) => r.paperTicket && r.status !== "cancelled");
   const ready = wants.filter((r) => r.status === "paid" && !r.printedAt);

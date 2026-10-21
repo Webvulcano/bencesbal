@@ -2,10 +2,15 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fakeDb } from "./fake-db";
 import { reg, ticket } from "./fixtures";
 
-const state = vi.hoisted(() => ({ db: null, sent: [], pending: [], failFor: null }));
+const state = vi.hoisted(() => ({ db: null, sent: [], pending: [], failFor: null, admin: true }));
 
 vi.mock("next/server", () => ({ after: (fn) => state.pending.push(fn) }));
 vi.mock("next/cache", () => ({ revalidatePath: () => {} }));
+vi.mock("@/lib/admin-auth", () => ({
+  requireAdmin: async () => {
+    if (!state.admin) throw new Error("NEXT_REDIRECT");
+  },
+}));
 vi.mock("@/lib/supabase-admin", () => ({ getSupabaseAdmin: () => state.db }));
 vi.mock("@/lib/mailer", () => ({
   sendMail: async (m) => {
@@ -15,7 +20,7 @@ vi.mock("@/lib/mailer", () => ({
 }));
 vi.mock("@/lib/pdf/ticket", () => ({ buildTicketsPdf: (r) => `PDF:${r.tickets.map((t) => t.holder_name).join(",")}` }));
 
-const { markPaid, cancelRegistration, createGuest } = await import("@/app/admin/actions");
+const { markPaid, cancelRegistration, createGuest, setPrinted, setCapacity } = await import("@/app/admin/actions");
 
 const form = (ref) => {
   const f = new FormData();
@@ -35,6 +40,7 @@ beforeEach(() => {
   state.sent = [];
   state.pending = [];
   state.failFor = null;
+  state.admin = true;
 });
 
 describe("Fizetve gomb", () => {
@@ -93,12 +99,13 @@ describe("Lemondás gomb", () => {
     expect(state.db.byRef.get("GYBB-0042").cancellation_email_sent_at).toBeTruthy();
   });
 
-  it("fizetett → nem megy ki email", async () => {
+  it("fizetett → ugyanaz a lemondó email megy ki", async () => {
     state.db = fakeDb([reg([ticket(1, "Anna", "anna@example.com")], { status: "paid" })]);
     await cancelRegistration(form("GYBB-0042"));
     await flush();
-    expect(state.sent).toHaveLength(0);
+    expect(mails()).toEqual([{ to: "anna@example.com", subject: "Jelentkezés törölve", pdf: [] }]);
     expect(state.db.byRef.get("GYBB-0042").status).toBe("cancelled");
+    expect(state.db.byRef.get("GYBB-0042").cancellation_email_sent_at).toBeTruthy();
   });
 
   it("már lemondott → nem megy ki újra", async () => {
@@ -140,5 +147,22 @@ describe("Kézi vendég felvétele", () => {
     await createGuest(payload({ markPaid: false }));
     await flush();
     expect(state.sent).toHaveLength(0);
+  });
+});
+
+describe("Belépés nélkül", () => {
+  it("egyik admin művelet sem fut le, adatbázis és email érintetlen", async () => {
+    state.admin = false;
+    state.db = null; // any DB access would crash with a different error
+    const calls = [
+      markPaid(form("GYBB-0001")),
+      cancelRegistration(form("GYBB-0001")),
+      createGuest({ markPaid: true }),
+      setPrinted(["GYBB-0001"], true),
+      setCapacity(null, new FormData()),
+    ];
+    for (const c of calls) await expect(c).rejects.toThrow("NEXT_REDIRECT");
+    await flush();
+    expect(state.sent).toEqual([]);
   });
 });

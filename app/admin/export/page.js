@@ -1,3 +1,4 @@
+import { requireAdmin } from "@/lib/admin-auth";
 import { loadAdminData } from "@/lib/admin-data";
 
 export const dynamic = "force-dynamic";
@@ -9,6 +10,7 @@ const SHEETS = [
 ];
 
 export default async function ExportPage() {
+  await requireAdmin();
   const { stats } = await loadAdminData();
   return (
     <>
