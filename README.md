@@ -58,6 +58,16 @@ Külön-külön is megy: `npm run db:start` (DB, első indításkor migrációk 
    majd `npm run db:stop && npm run db:start`. A `.env.local`-ban `ADMIN_EMAILS=...`. Lokálisan a `http://localhost:3000/admin/belepes` címen lépj be.
 4. **Vercel**: `ADMIN_EMAILS` (Production) → redeploy. A régi `ADMIN_PASSWORD` törölhető.
 
+## Statisztika (admin → Statisztika)
+
+Látogatók (Vercel Web Analytics) + jelentkezések/jegyek (saját DB) 7 / 28 / 90 napra, napi grafikon, források, oldalak, eszköz, ország.
+
+- **`VERCEL_TOKEN`** kell hozzá (Vercelen Production env, lokálisan `.env.local` ha ott is látni akarod). Nélküle az oldal működik, csak a látogatói rész üres, és kiírja, hogy mi hiányzik.
+  - Létrehozás: Vercel → Account Settings → Tokens → Create. Scope: a bencesbal projekt teamje. Expiration: pl. 1 év (a bál utánig).
+  - A token az egész teamhez hozzáfér (Vercelen nincs csak-olvasó token) → csak szerveren van, a böngészőbe nem kerül ki. Ha kiszivárog: Vercelen törlöd, újat csinálsz.
+- A projekt/team azonosító be van égetve (`lib/vercel-analytics.js`); felülírható: `VERCEL_ANALYTICS_PROJECT_ID`, `VERCEL_ANALYTICS_TEAM_ID`.
+- Előfeltétel: Vercel → bencesbal → Analytics fül → Enable.
+
 ## Hibajavítás menete (éles hiba)
 
 1. Hiba reprodukálása lokálisan (`db:reset` után tiszta állapotból).

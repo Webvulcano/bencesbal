@@ -7,6 +7,7 @@ const ITEMS = [
   { href: "/admin/jelentkezok", label: "Jelentkezők", icon: "☰" },
   { href: "/admin/postazas", label: "Postázás", icon: "✉" },
   { href: "/admin/export", label: "Excel export", icon: "⤓" },
+  { href: "/admin/statisztika", label: "Statisztika", icon: "▤" },
 ];
 
 export default function AdminNav() {
