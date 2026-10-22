@@ -56,7 +56,7 @@ function Field({ label, hint, error, required, children }) {
     <div className="mb-3.5">
       <label className="label">
         {label}
-        {required && <span className="text-gold"> *</span>}
+        {required && <span className="text-bal-gold-dark"> *</span>}
       </label>
       {hint && <span className="hint">{hint}</span>}
       {children}
@@ -69,7 +69,7 @@ function Check({ type = "checkbox", checked, onChange, name, children }) {
   return (
     <label className="check">
       <input type={type} name={name} checked={checked} onChange={onChange} />
-      <span className="box">{checked && (type === "radio" ? <span className="size-2.5 rounded-full bg-navy-2" /> : "✔")}</span>
+      <span className="box">{checked && (type === "radio" ? <span className="size-2.5 rounded-full bg-bal-gold-dark" /> : "✔")}</span>
       <span>{children}</span>
     </label>
   );
@@ -80,14 +80,14 @@ function TicketCard({ t, qty, max, soldOut, onQty }) {
   const active = qty > 0;
   return (
     <div
-      className={`flex items-center gap-3 rounded-md border pl-3.5 pr-2 py-2 transition ${
-        soldOut ? "border-line bg-[#fafafa] text-muted" : active ? "border-navy-2 bg-gold-soft shadow-[inset_5px_0_0_var(--color-gold)]" : "border-line"
+      className={`flex items-center gap-3 rounded-xl border-2 pl-3.5 pr-2 py-2 transition ${
+        soldOut ? "border-bal-border bg-[#fafafa] text-muted" : active ? "border-bal-gold bg-bal-subtle shadow-[inset_5px_0_0_var(--color-bal-gold)]" : "border-bal-border bg-white"
       }`}
     >
       <span className="flex-1 min-w-0 leading-tight">
         <span className="block font-bold">{t.label}</span>
         <span className="block text-[13px] mt-0.5">
-          <b className={soldOut ? "" : "text-navy-2"}>{huf(t.price)}</b> <span className="text-muted">/ fő</span>
+          <b className={soldOut ? "" : "text-bal-gold-ink"}>{huf(t.price)}</b> <span className="text-muted">/ fő</span>
           {meta.map((m) => (
             <span key={m} className={`font-semibold ${m === "ELFOGYOTT" ? "text-sold" : "text-muted"}`}>
               {" · "}
@@ -102,11 +102,11 @@ function TicketCard({ t, qty, max, soldOut, onQty }) {
           aria-label={`${t.label}: kevesebb`}
           disabled={soldOut || qty <= 0}
           onClick={() => onQty(qty - 1)}
-          className="size-9 rounded-full border border-navy-2/40 text-navy-2 text-xl leading-none grid place-items-center cursor-pointer hover:bg-white disabled:opacity-25 disabled:cursor-default"
+          className="size-9 rounded-full border border-bal-border bg-bal-subtle text-bal-gold-ink text-xl leading-none grid place-items-center cursor-pointer hover:border-bal-gold disabled:opacity-25 disabled:cursor-default"
         >
           −
         </button>
-        <span className={`w-8 text-center font-bold text-lg tabular-nums ${active ? "text-navy-2" : "text-muted"}`} aria-live="polite">
+        <span className={`w-8 text-center font-bold text-lg tabular-nums ${active ? "text-bal-gold-ink" : "text-muted"}`} aria-live="polite">
           {qty}
         </span>
         <button
@@ -114,7 +114,7 @@ function TicketCard({ t, qty, max, soldOut, onQty }) {
           aria-label={`${t.label}: több`}
           disabled={soldOut || qty >= max}
           onClick={() => onQty(qty + 1)}
-          className="size-9 rounded-full bg-navy-2 text-white text-xl leading-none grid place-items-center cursor-pointer hover:bg-navy disabled:opacity-25 disabled:cursor-default"
+          className="size-9 rounded-full bg-bal-gold-dark text-white text-xl leading-none grid place-items-center cursor-pointer hover:bg-bal-gold-ink disabled:opacity-25 disabled:cursor-default"
         >
           +
         </button>
@@ -125,7 +125,7 @@ function TicketCard({ t, qty, max, soldOut, onQty }) {
 
 function TicketTag({ t }) {
   if (!t) return null;
-  const tier = t.id.endsWith("_arany") ? "bg-gold text-navy" : t.id.endsWith("_ezust") ? "bg-[#e4e7ee] text-navy-2" : "bg-navy-2 text-white";
+  const tier = t.id.endsWith("_arany") ? "bg-bal-gold text-bal-ink" : t.id.endsWith("_ezust") ? "bg-[#e8e8ec] text-bal-ink" : "bg-bal-gold-dark text-white";
   return <span className={`inline-block text-[12px] font-bold rounded px-2 py-0.5 whitespace-nowrap ${tier}`}>{t.label}</span>;
 }
 
@@ -283,13 +283,13 @@ export default function JelentkezesFlow() {
       {step !== "fizetes" && (
         <div className="shrink-0 max-w-xl w-full mx-auto px-4 pt-4 sm:pt-6">
           <div className="flex items-baseline justify-between gap-3">
-            <h1 className="font-serif text-gold text-[26px] sm:text-3xl leading-none">{STEP_TITLES[step]}</h1>
+            <h1 className="font-display font-bold text-bal-gold-dark text-[26px] sm:text-3xl leading-none">{STEP_TITLES[step]}</h1>
             <span className="text-sm text-muted whitespace-nowrap">
               {stepIdx + 1} / {formSteps}
             </span>
           </div>
-          <div className="h-[3px] bg-line/50 mt-3 rounded-full overflow-hidden">
-            <div className="h-full bg-navy-2 transition-all duration-300" style={{ width: `${((stepIdx + 1) / formSteps) * 100}%` }} />
+          <div className="h-[3px] bg-bal-border/60 mt-3 rounded-full overflow-hidden">
+            <div className="h-full bg-bal-gold transition-all duration-300" style={{ width: `${((stepIdx + 1) / formSteps) * 100}%` }} />
           </div>
         </div>
       )}
@@ -309,13 +309,13 @@ export default function JelentkezesFlow() {
                       role="tab"
                       aria-selected={active}
                       onClick={() => setHall(h.id)}
-                      className={`rounded-md border-2 px-3 py-2 text-left transition cursor-pointer ${active ? "border-navy-2 bg-navy-2 text-white" : "border-line hover:border-navy-2/50"}`}
+                      className={`rounded-xl border-2 px-3 py-2 text-left transition cursor-pointer ${active ? "border-bal-gold-dark bg-bal-gold-dark text-white shadow-[0_6px_20px_rgba(181,149,47,0.2)]" : "border-bal-border bg-white hover:border-bal-gold"}`}
                     >
                       <span className="flex items-center justify-between gap-2 font-bold">
                         {h.label}
                         {(() => {
                           const n = PUBLIC_TYPES.filter((t) => t.hall === h.id).reduce((a, t) => a + (f.qty[t.id] || 0), 0);
-                          return n > 0 ? <span className={`text-[12px] rounded-full px-2 py-0.5 ${active ? "bg-gold text-navy" : "bg-gold-soft text-navy-2"}`}>{n} db</span> : null;
+                          return n > 0 ? <span className={`text-[12px] rounded-full px-2 py-0.5 ${active ? "bg-white text-bal-gold-ink" : "bg-bal-subtle text-bal-gold-ink"}`}>{n} db</span> : null;
                         })()}
                       </span>
                       <span className={`flex items-center gap-1.5 text-[12.5px] font-semibold ${active ? "text-white/85" : "text-muted"}`}>
@@ -364,21 +364,21 @@ export default function JelentkezesFlow() {
                     aria-label="Mi az a barátkód?"
                     aria-expanded={helpOpen}
                     onClick={() => setHelpOpen(!helpOpen)}
-                    className={`size-5 rounded-full border text-[12px] font-bold grid place-items-center cursor-pointer transition ${helpOpen ? "bg-navy-2 border-navy-2 text-white" : "border-navy-2 text-navy-2 hover:bg-gold-soft"}`}
+                    className={`size-5 rounded-full border text-[12px] font-bold grid place-items-center cursor-pointer transition ${helpOpen ? "bg-bal-gold-dark border-bal-gold-dark text-white" : "border-bal-gold-dark text-bal-gold-dark hover:bg-bal-subtle"}`}
                   >
                     ?
                   </button>
                 </div>
                 {helpOpen && (
-                  <div role="tooltip" className="absolute z-20 left-0 right-0 top-8 bg-navy text-white text-[14px] leading-snug rounded-md p-3.5 shadow-lg border-l-4 border-gold">
-                    <p className="font-bold text-gold mb-1">Mi az a barátkód?</p>
+                  <div role="tooltip" className="absolute z-20 left-0 right-0 top-8 bg-white text-bal-ink text-[14px] leading-snug rounded-xl p-3.5 shadow-[0_10px_30px_rgba(181,149,47,0.18)] border border-bal-border border-l-4 border-l-bal-gold">
+                    <p className="font-display font-bold text-bal-gold-dark mb-1">Mi az a barátkód?</p>
                     <p>
                       A fizetés végén <b>mindenki kap egy barátkódot</b> (pl. {REF_PREFIX}-1234).
                     </p>
                     <p className="mt-1.5">
                       Ezzel jelzed, hogy kikkel szeretnél <b>egy asztalhoz ülni</b>, akkor is, ha külön jelentkeztek. Ha egy barátod már jelentkezett, kérd el a kódját, és írd be ide.
                     </p>
-                    <button type="button" onClick={() => setHelpOpen(false)} className="mt-2 text-gold font-bold text-sm cursor-pointer hover:underline">
+                    <button type="button" onClick={() => setHelpOpen(false)} className="mt-2 text-bal-gold-ink font-bold text-sm cursor-pointer hover:underline">
                       Értem
                     </button>
                   </div>
@@ -387,7 +387,7 @@ export default function JelentkezesFlow() {
                   {f.friendCodes.map((code, i) => (
                     <div key={i}>
                       <div className="flex items-stretch gap-2">
-                        <span aria-hidden className="grid place-items-center px-3 rounded-[2px] bg-[#f1f1f1] border border-line text-muted font-mono font-bold tracking-[2px] select-none">
+                        <span aria-hidden className="grid place-items-center px-3 rounded-lg bg-bal-subtle border border-bal-border text-muted font-mono font-bold tracking-[2px] select-none">
                           {REF_PREFIX}-
                         </span>
                         <input
@@ -420,7 +420,7 @@ export default function JelentkezesFlow() {
                   <button
                     type="button"
                     onClick={() => set("friendCodes", [...f.friendCodes, ""])}
-                    className="mt-2.5 text-navy-2 font-bold text-[15px] hover:underline cursor-pointer"
+                    className="mt-2.5 text-bal-gold-ink font-bold text-[15px] hover:underline cursor-pointer"
                   >
                     + Újabb barátkód
                   </button>
@@ -484,7 +484,7 @@ export default function JelentkezesFlow() {
           {step === "bences" && (
             <>
               <p className="label mb-3">
-                Hogy kapcsolódik bencés közösségünkhöz?<span className="text-gold"> *</span>
+                Hogy kapcsolódik bencés közösségünkhöz?<span className="text-bal-gold-dark"> *</span>
               </p>
               <div className="space-y-2.5">
                 {RELATIONS.map((r) => (
@@ -517,9 +517,9 @@ export default function JelentkezesFlow() {
           {step === "tarsak" && (
             <>
               <p className="text-muted text-sm mb-3">Add meg, kinek szól a többi jegy — a jegyet emailben küldjük nekik.</p>
-              <div className="max-h-[calc(100dvh-290px)] overflow-y-auto overscroll-contain border border-line/70 rounded-md divide-y divide-line/60">
+              <div className="max-h-[calc(100dvh-290px)] overflow-y-auto overscroll-contain border-2 border-bal-border bg-white rounded-xl divide-y divide-bal-border/70">
                 <div className="flex gap-2.5 items-start px-3 py-2.5">
-                  <span className="font-serif text-gold text-xl w-6 pt-1.5 shrink-0">1.</span>
+                  <span className="font-display font-bold text-bal-gold-dark text-xl w-6 pt-1.5 shrink-0">1.</span>
                   <div className="flex-1 min-w-0">
                     <div className="mb-1.5 flex items-center gap-2">
                       <TicketTag t={seats[0]} />
@@ -533,7 +533,7 @@ export default function JelentkezesFlow() {
                 </div>
                 {f.companions.map((c, i) => (
                   <div key={i} className="flex gap-2.5 items-start px-3 py-2.5">
-                    <span className="font-serif text-gold text-xl w-6 pt-1.5 shrink-0">{i + 2}.</span>
+                    <span className="font-display font-bold text-bal-gold-dark text-xl w-6 pt-1.5 shrink-0">{i + 2}.</span>
                     <div className="flex-1 min-w-0">
                       <div className="mb-1.5">
                         <TicketTag t={seats[i + 1]} />
@@ -557,7 +557,7 @@ export default function JelentkezesFlow() {
 
           {step === "veglegesites" && (
             <>
-              <dl className="text-[15px] divide-y divide-line/60 border-y border-line/60 mb-5 max-h-[calc(100dvh-400px)] overflow-y-auto overscroll-contain pr-1">
+              <dl className="text-[15px] divide-y divide-bal-border/70 border-y border-bal-border mb-5 max-h-[calc(100dvh-400px)] overflow-y-auto overscroll-contain pr-1">
                 {[
                   ["Jegy", lines.join("\n")],
                   ["Kapcsolattartó", `${f.contact.name}\n${f.contact.email}\n${f.contact.phone}`],
@@ -593,10 +593,10 @@ export default function JelentkezesFlow() {
                 <div>
                   <Check checked={f.consent} onChange={(e) => set("consent", e.target.checked)}>
                     Az{" "}
-                    <a href={PRIVACY_URL} target="_blank" rel="noopener" className="text-navy-2 underline">
+                    <a href={PRIVACY_URL} target="_blank" rel="noopener" className="text-bal-gold-ink underline">
                       adatkezelési szabályzatban
                     </a>{" "}
-                    foglaltakat elolvastam, megértettem és elfogadom.<span className="text-gold"> *</span>
+                    foglaltakat elolvastam, megértettem és elfogadom.<span className="text-bal-gold-dark"> *</span>
                   </Check>
                   {errors.consent && <span className="err ml-8">{errors.consent}</span>}
                   {errors.submit && (
@@ -612,17 +612,17 @@ export default function JelentkezesFlow() {
           {step === "fizetes" && (
             <>
               <div className="text-center mb-3">
-                <h1 className="font-serif text-gold text-2xl sm:text-3xl leading-tight">Köszönjük, {f.contact.name}!</h1>
+                <h1 className="font-display font-bold text-bal-gold-dark text-2xl sm:text-3xl leading-tight">Köszönjük, {f.contact.name}!</h1>
                 <p className="text-muted text-[15px] mt-1">
-                  Utald át <b className="text-black">{PAYMENT_DEADLINE_DAYS} napon belül</b> az alábbi adatokkal.
+                  Utald át <b className="text-bal-ink">{PAYMENT_DEADLINE_DAYS} napon belül</b> az alábbi adatokkal.
                 </p>
               </div>
-              <div className="border-2 border-gold rounded-lg overflow-hidden">
-                <div className="bg-navy text-center py-2.5 px-4">
-                  <p className="text-gold font-serif text-lg leading-none">Fizetendő</p>
-                  <p className="text-white text-[28px] font-bold leading-tight">{huf(total)}</p>
+              <div className="border-2 border-bal-border bg-white rounded-2xl overflow-hidden shadow-[0_10px_30px_rgba(181,149,47,0.12)]">
+                <div className="bg-bal-subtle border-b border-bal-border text-center py-2.5 px-4">
+                  <p className="text-bal-gold-dark font-display font-bold uppercase tracking-[1.5px] text-sm leading-none">Fizetendő</p>
+                  <p className="text-bal-ink text-[28px] font-bold leading-tight mt-1">{huf(total)}</p>
                 </div>
-                <dl className="divide-y divide-line/60 px-4 sm:px-6 text-[15px]">
+                <dl className="divide-y divide-bal-border/70 px-4 sm:px-6 text-[15px]">
                   {bankRows().map(([k, v]) => (
                     <div key={k} className="grid grid-cols-[124px_1fr] gap-3 py-1.5 leading-snug">
                       <dt className="text-muted">{k}</dt>
@@ -632,8 +632,8 @@ export default function JelentkezesFlow() {
                   <div className="grid grid-cols-[124px_1fr] gap-3 py-2 items-center">
                     <dt className="text-muted">Közlemény</dt>
                     <dd className="flex items-center gap-2">
-                      <span className="font-mono font-bold text-[15px] bg-gold-soft border border-gold rounded px-2.5 py-1 break-all">{memo(ref)}</span>
-                      <button type="button" onClick={() => copy("ref", memo(ref))} className="text-sm text-navy-2 font-bold hover:underline cursor-pointer">
+                      <span className="font-mono font-bold text-[15px] bg-bal-subtle border border-bal-gold rounded-lg px-2.5 py-1 break-all">{memo(ref)}</span>
+                      <button type="button" onClick={() => copy("ref", memo(ref))} className="text-sm text-bal-gold-ink font-bold hover:underline cursor-pointer">
                         {copied === "ref" ? "Másolva ✓" : "Másolás"}
                       </button>
                     </dd>
@@ -641,25 +641,25 @@ export default function JelentkezesFlow() {
                 </dl>
               </div>
               <p className="text-[12.8px] font-semibold text-sold text-center mt-1.5">Pontosan ezt a közleményt írd be!</p>
-              <div className="mt-3 flex items-center justify-between gap-3 rounded-md border border-gold bg-gold-soft px-3.5 py-2">
+              <div className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-bal-gold bg-bal-subtle px-3.5 py-2">
                 <div className="leading-tight">
                   <span className="block text-[12px] text-muted">A te barátkódod</span>
-                  <span className="font-mono font-bold text-lg tracking-[2px] text-navy-2">{ref}</span>
+                  <span className="font-mono font-bold text-lg tracking-[2px] text-bal-gold-ink">{ref}</span>
                 </div>
-                <button type="button" onClick={() => copy("code", ref)} className="text-sm text-navy-2 font-bold hover:underline cursor-pointer">
+                <button type="button" onClick={() => copy("code", ref)} className="text-sm text-bal-gold-ink font-bold hover:underline cursor-pointer">
                   {copied === "code" ? "Másolva ✓" : "Másolás"}
                 </button>
               </div>
               <p className="text-[12.5px] text-muted text-center mt-1">Küldd el a barátaidnak, hogy egy asztalhoz ülhessetek.</p>
               <p className="text-[12.5px] text-muted text-center mt-4">
-                Visszaigazolót küldtünk a(z) <b className="text-black break-all">{f.contact.email}</b> címre — nézd meg a spam mappát is.
+                Visszaigazolót küldtünk a(z) <b className="text-bal-ink break-all">{f.contact.email}</b> címre — nézd meg a spam mappát is.
               </p>
             </>
           )}
         </div>
       </div>
 
-      <div className="shrink-0 border-t border-line/70 bg-white/95 backdrop-blur">
+      <div className="shrink-0 border-t border-bal-border bg-white/95 backdrop-blur">
         <div className="max-w-xl mx-auto px-4 py-3 flex items-center gap-3">
           {step === "fizetes" ? (
             <button type="button" className="btn-ghost w-full" onClick={restart}>
@@ -674,7 +674,7 @@ export default function JelentkezesFlow() {
               )}
               <div className="flex-1 min-w-0 leading-tight">
                 <span className="block text-[12px] text-muted">Fizetendő</span>
-                <span className="block font-bold text-navy-2 text-lg truncate">{huf(total)}</span>
+                <span className="block font-bold text-bal-gold-ink text-lg truncate">{huf(total)}</span>
               </div>
               <button type="button" className="btn-primary px-5 text-base sm:px-[30px] sm:text-lg" onClick={next} disabled={submitting}>
                 {submitting ? "Küldés…" : step === "veglegesites" ? "Jelentkezés" : "Tovább"}
