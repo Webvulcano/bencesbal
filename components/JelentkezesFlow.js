@@ -77,7 +77,8 @@ function Check({ type = "checkbox", checked, onChange, name, children }) {
 
 function TicketCard({ t, qty, max, soldOut, onQty }) {
   const presale = t.latePrice != null && !isLatePrice();
-  const meta = [soldOut && "ELFOGYOTT", presale && t.note, presale && `${LATE_PRICE_LABEL} ${huf(t.latePrice)}`, t.requires && REQUIRES_LABEL[t.requires], t.maxPeople && `max. ${t.maxPeople} fő`].filter(Boolean);
+  const latePrice = presale && `${LATE_PRICE_LABEL} ${huf(t.latePrice)}`;
+  const meta = [soldOut && "ELFOGYOTT", presale && t.note, latePrice, t.requires && REQUIRES_LABEL[t.requires], t.maxPeople && `max. ${t.maxPeople} fő`].filter(Boolean);
   const active = qty > 0;
   return (
     <div
@@ -92,7 +93,7 @@ function TicketCard({ t, qty, max, soldOut, onQty }) {
           {meta.map((m) => (
             <span key={m} className={`font-semibold ${m === "ELFOGYOTT" ? "text-sold" : "text-muted"}`}>
               {" · "}
-              {m}
+              {m === latePrice ? <span className="whitespace-nowrap">{m}</span> : m}
             </span>
           ))}
         </span>
