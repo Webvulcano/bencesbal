@@ -116,7 +116,7 @@ export default function StatsChart({ series, metrics, extra, defaultOn }) {
             ) : null,
           )}
         </div>
-        {active.length === 0 && <p className="text-sm text-muted text-center -mt-32 mb-28">Válassz fent legalább egy mutatót.</p>}
+        {active.length === 0 && <p className="text-sm text-muted text-center -mt-32 mb-28">Kérjük, válasszon fent legalább egy mutatót.</p>}
       </div>
     </div>
   );

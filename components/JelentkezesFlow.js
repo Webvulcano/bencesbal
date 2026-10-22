@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { track } from "@vercel/analytics";
 import { supabase } from "@/lib/supabase";
 import { submitRegistration } from "@/app/(jelentkezes)/actions";
-import { bankRows, HALLS, isLatePrice, LATE_PRICE_LABEL, memo, PAYMENT_DEADLINE_DAYS, priceOf, REF_PREFIX, RELATIONS, SCHOOLS, TICKET_TYPES } from "@/lib/constants";
+import { bankRows, HALLS, isLatePrice, LATE_PRICE_LABEL, memo, priceOf, REF_PREFIX, RELATIONS, SCHOOLS, TICKET_TYPES } from "@/lib/constants";
 
 const huf = (n) => new Intl.NumberFormat("hu-HU").format(n) + " Ft";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -187,7 +187,7 @@ export default function JelentkezesFlow() {
 
   function validate() {
     const e = {};
-    if (step === "jegy" && count < 1) e.ticket = "Válassz legalább 1 jegyet";
+    if (step === "jegy" && count < 1) e.ticket = "Kérjük, válasszon legalább 1 jegyet";
     if (step === "letszam") {
       f.friendCodes.forEach((c, i) => {
         if (c && !CODE_RE.test(c)) e[`fc${i}`] = `A barátkód formátuma: ${REF_PREFIX}-1234`;
@@ -200,9 +200,9 @@ export default function JelentkezesFlow() {
     }
     if (step === "lakcim") ["zip", "city", "street", "no"].forEach((k) => !f.address[k].trim() && (e[k] = "Kötelező"));
     if (step === "bences") {
-      if (!f.relation.type) e.relation = "Válassz egyet";
-      if (f.relation.type === "oregdiak" && (!f.relation.school || !f.relation.year)) e.relation = "Add meg az iskolát és évfolyamot";
-      if (f.relation.type === "munkatars" && !f.relation.empCode.trim()) e.relation = "Add meg a dolgozói kódot";
+      if (!f.relation.type) e.relation = "Kérjük, válasszon egyet";
+      if (f.relation.type === "oregdiak" && (!f.relation.school || !f.relation.year)) e.relation = "Kérjük, adja meg az iskolát és az évfolyamot";
+      if (f.relation.type === "munkatars" && !f.relation.empCode.trim()) e.relation = "Kérjük, adja meg a dolgozói kódot";
     }
     if (step === "tarsak")
       f.companions.forEach((c, i) => {
@@ -239,12 +239,12 @@ export default function JelentkezesFlow() {
       const msg = res.error;
       if (msg.startsWith("SOLD_OUT:")) {
         const h = HALLS[msg.split(":")[1]];
-        setErrors({ submit: `Közben elfogyott a hely${h ? ` a(z) ${h.label}ben` : ""}. Kérjük, módosítsd a jegyeket.` });
+        setErrors({ submit: `Közben elfogyott a hely${h ? ` a(z) ${h.label}ben` : ""}. Kérjük, módosítsa a jegyeket.` });
         loadFree();
       } else if (msg.startsWith("BAD_FRIEND_CODE:")) {
-        setErrors({ submit: `A(z) ${msg.split(":")[1]} barátkód nem létezik. Ellenőrizd, vagy töröld az Ültetés lépésen.` });
+        setErrors({ submit: `A(z) ${msg.split(":")[1]} barátkód nem létezik. Kérjük, ellenőrizze, vagy törölje az Ültetés lépésnél.` });
       } else {
-        setErrors({ submit: "Nem sikerült elküldeni a jelentkezést. Próbáld újra pár perc múlva." });
+        setErrors({ submit: "Nem sikerült elküldeni a jelentkezést. Kérjük, próbálja újra pár perc múlva." });
       }
       return;
     }
@@ -355,7 +355,7 @@ export default function JelentkezesFlow() {
 
           {step === "letszam" && (
             <>
-              <p className="text-muted mb-5">Szeretnél a barátaiddal egy asztalhoz ülni? Ha kaptál tőlük barátkódot, írd be ide.</p>
+              <p className="text-muted mb-5">Szeretne barátaival egy asztalhoz ülni? Ha kapott tőlük barátkódot, kérjük, írja be ide.</p>
               <div className="relative">
                 <div className="flex items-center gap-2 mb-1.5">
                   <label htmlFor="friendCode0" className="font-bold">
@@ -378,7 +378,7 @@ export default function JelentkezesFlow() {
                       A fizetés végén <b>mindenki kap egy barátkódot</b> (pl. {REF_PREFIX}-1234).
                     </p>
                     <p className="mt-1.5">
-                      Ezzel jelzed, hogy kikkel szeretnél <b>egy asztalhoz ülni</b>, akkor is, ha külön jelentkeztek. Ha egy barátod már jelentkezett, kérd el a kódját, és írd be ide.
+                      Ezzel jelezheti, hogy kikkel szeretne <b>egy asztalhoz ülni</b>, akkor is, ha külön jelentkeznek. Ha egy barátja már jelentkezett, kérje el a kódját, és írja be ide.
                     </p>
                     <button type="button" onClick={() => setHelpOpen(false)} className="mt-2 text-bal-gold-ink font-bold text-sm cursor-pointer hover:underline">
                       Értem
@@ -427,7 +427,7 @@ export default function JelentkezesFlow() {
                     + Újabb barátkód
                   </button>
                 )}
-                <span className="block text-[12.8px] font-semibold text-muted mt-1.5">Barátaid közlemény-kódjai — így egy asztalhoz ültetünk titeket.</span>
+                <span className="block text-[12.8px] font-semibold text-muted mt-1.5">Barátai közlemény-kódjai — így egy asztalhoz ültetjük Önöket.</span>
               </div>
               <div className="mt-5">
                 <label htmlFor="seatingNote" className="font-bold">
@@ -498,7 +498,7 @@ export default function JelentkezesFlow() {
               {f.relation.type === "oregdiak" && (
                 <div className="grid grid-cols-2 gap-3 mt-4">
                   <select className="field" value={f.relation.school} onChange={(e) => set("relation.school", e.target.value)}>
-                    <option value="">Hol érettségiztél?</option>
+                    <option value="">Hol érettségizett?</option>
                     {SCHOOLS.map((s) => <option key={s}>{s}</option>)}
                   </select>
                   <select className="field" value={f.relation.year} onChange={(e) => set("relation.year", e.target.value)}>
@@ -518,7 +518,7 @@ export default function JelentkezesFlow() {
 
           {step === "tarsak" && (
             <>
-              <p className="text-muted text-sm mb-3">Add meg, kinek szól a többi jegy — a jegyet emailben küldjük nekik.</p>
+              <p className="text-muted text-sm mb-3">Kérjük, adja meg, kinek szól a többi jegy — a jegyet emailben küldjük el nekik.</p>
               <div className="max-h-[calc(100dvh-290px)] overflow-y-auto overscroll-contain border-2 border-bal-border bg-white rounded-xl divide-y divide-bal-border/70">
                 <div className="flex gap-2.5 items-start px-3 py-2.5">
                   <span className="font-display font-bold text-bal-gold-dark text-xl w-6 pt-1.5 shrink-0">1.</span>
@@ -616,7 +616,7 @@ export default function JelentkezesFlow() {
               <div className="text-center mb-3">
                 <h1 className="font-display font-bold text-bal-gold-dark text-2xl sm:text-3xl leading-tight">Köszönjük, {f.contact.name}!</h1>
                 <p className="text-muted text-[15px] mt-1">
-                  Utald át <b className="text-bal-ink">{PAYMENT_DEADLINE_DAYS} napon belül</b> az alábbi adatokkal.
+                  Kérjük, szíveskedjék átutalni a végösszeget az alábbi adatokkal.
                 </p>
               </div>
               <div className="border-2 border-bal-border bg-white rounded-2xl overflow-hidden shadow-[0_10px_30px_rgba(181,149,47,0.12)]">
@@ -642,19 +642,19 @@ export default function JelentkezesFlow() {
                   </div>
                 </dl>
               </div>
-              <p className="text-[12.8px] font-semibold text-sold text-center mt-1.5">Pontosan ezt a közleményt írd be!</p>
+              <p className="text-[12.8px] font-semibold text-sold text-center mt-1.5">Kérjük, pontosan ezt a közleményt adja meg!</p>
               <div className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-bal-gold bg-bal-subtle px-3.5 py-2">
                 <div className="leading-tight">
-                  <span className="block text-[12px] text-muted">A te barátkódod</span>
+                  <span className="block text-[12px] text-muted">Az Ön barátkódja</span>
                   <span className="font-mono font-bold text-lg tracking-[2px] text-bal-gold-ink">{ref}</span>
                 </div>
                 <button type="button" onClick={() => copy("code", ref)} className="text-sm text-bal-gold-ink font-bold hover:underline cursor-pointer">
                   {copied === "code" ? "Másolva ✓" : "Másolás"}
                 </button>
               </div>
-              <p className="text-[12.5px] text-muted text-center mt-1">Küldd el a barátaidnak, hogy egy asztalhoz ülhessetek.</p>
+              <p className="text-[12.5px] text-muted text-center mt-1">Küldje el barátainak, hogy egy asztalhoz ülhessenek.</p>
               <p className="text-[12.5px] text-muted text-center mt-4">
-                Visszaigazolót küldtünk a(z) <b className="text-bal-ink break-all">{f.contact.email}</b> címre — nézd meg a spam mappát is.
+                Visszaigazolót küldtünk a(z) <b className="text-bal-ink break-all">{f.contact.email}</b> címre — kérjük, nézze meg a spam mappát is.
               </p>
             </>
           )}

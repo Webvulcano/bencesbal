@@ -71,7 +71,7 @@ export default function GuestForm({ types, halls }) {
 
   function validate() {
     const e = {};
-    if (count < 1) e.qty = "Válassz legalább 1 jegyet.";
+    if (count < 1) e.qty = "Kérjük, válasszon legalább 1 jegyet.";
     if (!f.contact.name.trim()) e.name = "Kötelező";
     if (!f.contact.email.trim()) e.email = "Kötelező";
     else if (!EMAIL_RE.test(f.contact.email)) e.email = "Hibás email";
@@ -234,7 +234,7 @@ export default function GuestForm({ types, halls }) {
             </span>
           </label>
           {errors.submit && <p role="alert" className="mt-3 rounded-md bg-sold-soft text-sold font-semibold text-sm px-3 py-2">{errors.submit}</p>}
-          {Object.keys(errors).some((k) => k !== "submit") && <p className="mt-3 text-sm text-gold">Javítsd a pirossal jelölt mezőket.</p>}
+          {Object.keys(errors).some((k) => k !== "submit") && <p className="mt-3 text-sm text-gold">Kérjük, javítsa a pirossal jelölt mezőket.</p>}
           <div className="flex items-center justify-between gap-3 mt-4">
             <Link href="/admin/jelentkezok" className="text-white/70 hover:text-white text-sm">Mégse</Link>
             <button type="submit" disabled={pending} className="rounded-lg bg-gold text-navy font-bold uppercase tracking-[1px] px-6 py-3 hover:brightness-105 disabled:opacity-50 cursor-pointer">

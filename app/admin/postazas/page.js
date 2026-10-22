@@ -21,7 +21,7 @@ export default async function Postazas() {
         <h1 className="font-serif text-gold text-3xl">Postázás</h1>
       </div>
       <p className="text-muted mb-6 max-w-3xl">
-        Címzettenként egy címlap (a név és cím a DL ablakos boríték ablakába esik — harmadolva hajtsd a lap szélén lévő jelek mentén).
+        Címzettenként egy címlap (a név és cím a DL ablakos boríték ablakába esik — harmadolva hajtsa a lap szélén lévő jelek mentén).
         Csak a <b className="text-black">fizetett</b> jelentkezések kerülnek bele.
       </p>
 

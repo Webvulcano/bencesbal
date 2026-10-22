@@ -42,7 +42,7 @@ const GUEST_ERRORS = {
   EMAIL_REQUIRED: "A kapcsolattartó email-címe kötelező.",
   INVALID_EMAIL: "Hibás email-cím.",
   ADDRESS_REQUIRED: "Papírjegyhez a teljes cím kötelező.",
-  INVALID_QTY: "Válassz legalább 1 jegyet.",
+  INVALID_QTY: "Kérjük, válasszon legalább 1 jegyet.",
   INVALID_COMPANION: "Minden résztvevő neve kötelező.",
 };
 
@@ -71,7 +71,7 @@ export async function setCapacity(_prev, formData) {
   await requireAdmin();
   const hallId = formData.get("hall");
   const capacity = Number(formData.get("capacity"));
-  if (!Number.isInteger(capacity) || capacity < 0 || capacity > 2000) return { error: "Adj meg egy egész számot (0–2000)." };
+  if (!Number.isInteger(capacity) || capacity < 0 || capacity > 2000) return { error: "Kérjük, adjon meg egy egész számot (0–2000)." };
 
   const db = getSupabaseAdmin();
   const { count, error: countError } = await db

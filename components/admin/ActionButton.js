@@ -41,7 +41,7 @@ function ConfirmDialog({ confirm, onCancel, onOk }) {
         {c.requireText && (
           <label className="block mt-4 text-sm">
             <span className="text-muted">
-              A megerősítéshez írd be: <b className="text-black select-none">{c.requireText}</b>
+              A megerősítéshez írja be: <b className="text-black select-none">{c.requireText}</b>
             </span>
             <input
               ref={inputRef}

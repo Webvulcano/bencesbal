@@ -6,8 +6,8 @@ import { loginWithGoogle } from "./actions";
 export const dynamic = "force-dynamic";
 
 const ERRORS = {
-  jogosultsag: "Nincs jogod belépni az admin felületre. Vedd fel a kapcsolatot az adminnal.",
-  sikertelen: "A belépés nem sikerült, próbáld újra.",
+  jogosultsag: "Nincs jogosultsága belépni az admin felületre. Kérjük, vegye fel a kapcsolatot az adminnal.",
+  sikertelen: "A belépés nem sikerült, kérjük, próbálja újra.",
 };
 
 export default async function Belepes({ searchParams }) {

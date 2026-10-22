@@ -185,7 +185,7 @@ export default async function Jelentkezok({ searchParams }) {
                     confirm={
                       r.status === "paid"
                         ? { title: "Fizetett jelentkezés lemondása", body: `${r.ref} · ${r.contact.name} · ${r.members.length} fő · ${huf(r.total)}\n\nEz a jelentkezés már KI VAN FIZETVE. A helyek felszabadulnak, a visszautalást külön kell intézni.`, label: "Lemondom", tone: "danger", requireText: "Kifizette és most lemondom" }
-                        : { title: "Biztosan lemondod?", body: `${r.ref} · ${r.contact.name} · ${r.members.length} fő\n\nA helyek felszabadulnak.`, label: "Igen, lemondom", tone: "danger" }
+                        : { title: "Biztosan lemondja?", body: `${r.ref} · ${r.contact.name} · ${r.members.length} fő\n\nA helyek felszabadulnak.`, label: "Igen, lemondom", tone: "danger" }
                     }
                     className="rounded-md border border-sold text-sold font-bold text-sm px-3.5 py-1.5 hover:bg-sold-soft"
                   >
