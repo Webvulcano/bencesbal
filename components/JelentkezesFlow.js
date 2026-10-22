@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { track } from "@vercel/analytics";
 import { supabase } from "@/lib/supabase";
 import { submitRegistration } from "@/app/(jelentkezes)/actions";
-import { bankRows, HALLS, memo, PAYMENT_DEADLINE_DAYS, REF_PREFIX, RELATIONS, SCHOOLS, TICKET_TYPES } from "@/lib/constants";
+import { bankRows, HALLS, isLatePrice, LATE_PRICE_LABEL, memo, PAYMENT_DEADLINE_DAYS, priceOf, REF_PREFIX, RELATIONS, SCHOOLS, TICKET_TYPES } from "@/lib/constants";
 
 const huf = (n) => new Intl.NumberFormat("hu-HU").format(n) + " Ft";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -76,7 +76,8 @@ function Check({ type = "checkbox", checked, onChange, name, children }) {
 }
 
 function TicketCard({ t, qty, max, soldOut, onQty }) {
-  const meta = [soldOut && "ELFOGYOTT", t.note, t.requires && REQUIRES_LABEL[t.requires], t.maxPeople && `max. ${t.maxPeople} fő`].filter(Boolean);
+  const presale = t.latePrice != null && !isLatePrice();
+  const meta = [soldOut && "ELFOGYOTT", presale && t.note, presale && `${LATE_PRICE_LABEL} ${huf(t.latePrice)}`, t.requires && REQUIRES_LABEL[t.requires], t.maxPeople && `max. ${t.maxPeople} fő`].filter(Boolean);
   const active = qty > 0;
   return (
     <div
@@ -87,7 +88,7 @@ function TicketCard({ t, qty, max, soldOut, onQty }) {
       <span className="flex-1 min-w-0 leading-tight">
         <span className="block font-bold">{t.label}</span>
         <span className="block text-[13px] mt-0.5">
-          <b className={soldOut ? "" : "text-bal-gold-ink"}>{huf(t.price)}</b> <span className="text-muted">/ fő</span>
+          <b className={soldOut ? "" : "text-bal-gold-ink"}>{huf(priceOf(t))}</b> <span className="text-muted">/ fő</span>
           {meta.map((m) => (
             <span key={m} className={`font-semibold ${m === "ELFOGYOTT" ? "text-sold" : "text-muted"}`}>
               {" · "}
@@ -157,7 +158,7 @@ export default function JelentkezesFlow() {
   }, [applySeats]);
 
   const count = Object.values(f.qty).reduce((a, b) => a + b, 0);
-  const total = PUBLIC_TYPES.reduce((sum, t) => sum + (f.qty[t.id] || 0) * t.price, 0);
+  const total = PUBLIC_TYPES.reduce((sum, t) => sum + (f.qty[t.id] || 0) * priceOf(t), 0);
   const seats = PUBLIC_TYPES.flatMap((t) => Array(f.qty[t.id] || 0).fill(t));
   const lines = PUBLIC_TYPES.filter((t) => f.qty[t.id]).map((t) => `${f.qty[t.id]} × ${t.label}`);
 
