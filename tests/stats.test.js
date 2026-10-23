@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { conversion, dailySeries, niceAxis, periodRange, topList } from "@/lib/stats";
+import { conversion, dailySeries, emailsSent, niceAxis, periodRange, topList } from "@/lib/stats";
 
 const NOW = new Date("2026-10-21T10:00:00Z");
 
@@ -65,5 +65,35 @@ describe("Tengely", () => {
     expect(niceAxis(0)).toEqual({ top: 3, ticks: [0, 1, 2, 3] });
     expect(niceAxis(2)).toEqual({ top: 3, ticks: [0, 1, 2, 3] });
     expect(niceAxis(10)).toEqual({ top: 12, ticks: [0, 4, 8, 12] });
+  });
+});
+
+describe("Kiküldött emailek", () => {
+  // 2026-10-23 10:00 Budapest (CEST, UTC+2)
+  const at = new Date("2026-10-23T08:00:00Z");
+  const reg = (over = {}, members = []) => ({ confirmationSentAt: null, paymentEmailSentAt: null, cancellationEmailSentAt: null, members, ...over });
+
+  it("ma (budapesti nap) és utolsó 24 óra külön", () => {
+    const regs = [
+      reg({ confirmationSentAt: "2026-10-23T07:00:00Z", paymentEmailSentAt: "2026-10-22T22:30:00Z" }), // ma 09:00, ma 00:30
+      reg({ confirmationSentAt: "2026-10-22T21:30:00Z" }), // tegnap 23:30 Budapest, de 24 órán belül
+      reg({ confirmationSentAt: "2026-10-21T10:00:00Z", cancellationEmailSentAt: "2026-10-23T07:59:00Z" }),
+    ];
+    expect(emailsSent(regs, at)).toEqual({ today: 3, last24h: 4 });
+  });
+
+  it("résztvevői jegy: egy cím + egy időpont = 1 email, hibás (időpont nélküli) nem számít", () => {
+    const ts = "2026-10-23T07:00:00Z";
+    const members = [
+      { email: "a@x.hu", ticketEmailSentAt: ts },
+      { email: "a@x.hu", ticketEmailSentAt: ts },
+      { email: "b@x.hu", ticketEmailSentAt: ts },
+      { email: "c@x.hu", ticketEmailSentAt: null },
+    ];
+    expect(emailsSent([reg({}, members)], at)).toEqual({ today: 2, last24h: 2 });
+  });
+
+  it("nincs küldés → 0", () => {
+    expect(emailsSent([], at)).toEqual({ today: 0, last24h: 0 });
   });
 });
