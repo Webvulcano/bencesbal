@@ -16,7 +16,7 @@ Külön-külön is megy: `npm run db:start` (DB, első indításkor migrációk 
 
 - Studio (DB admin felület): http://127.0.0.1:54323
 - `.env.local` → lokális DB. Felhős (éles) kulcsok: `.env.cloud.local` (nem töltődik be).
-- Email lokálisan is a Gmailen megy ki → a seed-adatok mind `@example.com` címek.
+- Email lokálisan is élesben megy ki (`noreply@gyoribencesbal.hu`) → a seed-adatok mind `@example.com` címek.
 
 | Parancs | Mit csinál |
 |---|---|
@@ -30,6 +30,21 @@ Külön-külön is megy: `npm run db:start` (DB, első indításkor migrációk 
 `JELENTKEZES_NYITVA=true` → jelentkező felület. Bármi más / hiányzik → előzetes oldal (`public/elozetes/`). Vercelen átírás után redeploy kell.
 
 **Időzített nyitás:** `JELENTKEZES_NYITAS=2026-11-01T10:00:00+01:00` → az előzetes oldal addig marad, a megadott időponttól magától nyit (redeploy nélkül). Az időzóna-eltolás kötelező: `+02:00` márc. utolsó vasárnap 3:00-tól okt. utolsó vasárnap 3:00-ig (pl. 2026-10-25 00:00 még `+02:00`), egyébként `+01:00`; enélkül vagy hibás értéknél zárva marad. A `JELENTKEZES_NYITVA=true` felülírja (azonnal nyitva) — időzítéshez azt hagyd üresen / `false`-on. Az env var átírásához Vercelen redeploy kell.
+
+## Email küldés (SMTP)
+
+A levelek a `noreply@gyoribencesbal.hu` fiókból mennek, a tárhely (atw.hu) levelezőszerverén. A válaszok a `MAIL_REPLY_TO` címre érkeznek.
+
+| Env | Érték |
+|---|---|
+| `SMTP_HOST` | `mail.gyoribencesbal.hu` |
+| `SMTP_PORT` | `465` (SSL/TLS) |
+| `SMTP_USER` | `noreply@gyoribencesbal.hu` (ez a feladó címe is) |
+| `SMTP_PASS` | a postafiók jelszava (cPanel → Email Accounts) |
+| `MAIL_FROM_NAME` | `Győri Bencés Bál` |
+| `MAIL_REPLY_TO` | `gyoribencesbal@gmail.com` (üresen is ez) |
+
+Vercelen Production env-be kell felvenni, utána redeploy. A régi `GMAIL_USER` / `GMAIL_APP_PASSWORD` törölhető.
 
 ## Admin belépés (Google)
 
