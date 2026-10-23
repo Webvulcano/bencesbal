@@ -29,6 +29,8 @@ Külön-külön is megy: `npm run db:start` (DB, első indításkor migrációk 
 
 `JELENTKEZES_NYITVA=true` → jelentkező felület. Bármi más / hiányzik → előzetes oldal (`public/elozetes/`). Vercelen átírás után redeploy kell.
 
+**Időzített nyitás:** `JELENTKEZES_NYITAS=2026-11-01T10:00:00+01:00` → az előzetes oldal addig marad, a megadott időponttól magától nyit (redeploy nélkül). Az időzóna-eltolás kötelező: `+02:00` márc. utolsó vasárnap 3:00-tól okt. utolsó vasárnap 3:00-ig (pl. 2026-10-25 00:00 még `+02:00`), egyébként `+01:00`; enélkül vagy hibás értéknél zárva marad. A `JELENTKEZES_NYITVA=true` felülírja (azonnal nyitva) — időzítéshez azt hagyd üresen / `false`-on. Az env var átírásához Vercelen redeploy kell.
+
 ## Admin belépés (Google)
 
 `/admin` és minden alútvonala (oldalak, Excel/PDF letöltés, gombok) csak Google-fiókkal érhető el, és csak az engedélyezett címekkel. A jelentkező felülethez nem kell belépés.
