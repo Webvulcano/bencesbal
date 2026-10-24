@@ -1,7 +1,7 @@
 import Link from "next/link";
 import StatsChart from "@/components/admin/StatsChart";
 import { requireAdmin } from "@/lib/admin-auth";
-import { conversion, dailySeries, PERIODS, periodRange, topList } from "@/lib/stats";
+import { dailySeries, PERIODS, periodRange, topList } from "@/lib/stats";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 import { ANALYTICS_ERRORS, loadVisitorStats } from "@/lib/vercel-analytics";
 
@@ -65,7 +65,6 @@ export default async function Statisztika({ searchParams }) {
   const paidAmount = paid.reduce((a, r) => a + (r.total ?? 0), 0);
   const ok = !visitors.error;
   const series = dailySeries(range.dates, ok ? visitors.daily : [], regsRes.data);
-  const conv = ok ? conversion(regs.length, visitors.total.visitors) : null;
 
   return (
     <>
@@ -100,19 +99,10 @@ export default async function Statisztika({ searchParams }) {
           { key: "registrations", label: "Jelentkezések", color: "#b8932a", value: num(regs.length), sub: `${num(tickets)} jegy · lemondottak nélkül` },
           { key: "payments", label: "Fizetések", color: "#2e7d4f", value: num(paid.length), sub: huf(paidAmount) },
         ]}
-        extra={
-          <div className="px-5 py-4 border-b border-line/50">
-            <p className="text-sm text-muted">Konverzió</p>
-            <p className="text-3xl font-bold text-navy-2 mt-1 tabular-nums">{conv === null ? "–" : `${conv.toLocaleString("hu-HU")}%`}</p>
-            <p className="text-sm text-muted mt-0.5">jelentkezés / látogató</p>
-          </div>
-        }
       />
 
       {ok && (
         <div className="grid md:grid-cols-2 gap-3 mt-6">
-          <Top title="Honnan jöttek" rows={topList(visitors.referrers, "referrerHostname", "Közvetlen / ismeretlen")} />
-          <Top title="Oldalak" rows={topList(visitors.pages, "requestPath")} />
           <Top title="Eszköz" rows={topList(visitors.devices, "deviceType").map((r) => ({ ...r, label: DEVICES[r.label] ?? r.label }))} />
           <Top title="Ország" rows={topList(visitors.countries, "country").map((r) => ({ ...r, label: country(r.label) }))} />
         </div>

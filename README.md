@@ -77,7 +77,7 @@ Vercelen Production env-be kell felvenni, utána redeploy. A régi `GMAIL_USER` 
 
 ## Statisztika (admin → Statisztika)
 
-Látogatók (Vercel Web Analytics) + jelentkezések/jegyek (saját DB) 7 / 28 / 90 napra, napi grafikon, források, oldalak, eszköz, ország.
+Látogatók (Vercel Web Analytics) + jelentkezések/jegyek (saját DB) 7 / 28 / 90 napra, napi grafikon, eszköz, ország.
 
 - **`VERCEL_TOKEN`** kell hozzá (Vercelen Production env, lokálisan `.env.local` ha ott is látni akarod). Nélküle az oldal működik, csak a látogatói rész üres, és kiírja, hogy mi hiányzik.
   - Létrehozás: Vercel → Account Settings → Tokens → Create. Scope: a bencesbal projekt teamje. Expiration: pl. 1 év (a bál utánig).

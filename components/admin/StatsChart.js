@@ -9,7 +9,7 @@ const label = (d) => d.slice(0, 10).replaceAll("-", ". ") + ".";
 
 // Search Console style: metric tiles toggle the lines; every line has its own scale,
 // the first selected metric labels the left axis, the second the right one.
-export default function StatsChart({ series, metrics, extra, defaultOn }) {
+export default function StatsChart({ series, metrics, defaultOn }) {
   const [on, setOn] = useState(defaultOn);
   const [hover, setHover] = useState(null);
   const active = metrics.filter((m) => on.includes(m.key));
@@ -23,7 +23,7 @@ export default function StatsChart({ series, metrics, extra, defaultOn }) {
 
   return (
     <div className="bg-white border border-line/70 rounded-lg overflow-hidden">
-      <div className="grid grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 lg:grid-cols-3">
         {metrics.map((m) => {
           const sel = on.includes(m.key);
           return (
@@ -44,7 +44,6 @@ export default function StatsChart({ series, metrics, extra, defaultOn }) {
             </button>
           );
         })}
-        {extra}
       </div>
 
       <div className="px-4 sm:px-6 pt-5 pb-4">

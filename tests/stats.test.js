@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { conversion, dailySeries, emailsSent, niceAxis, periodRange, topList } from "@/lib/stats";
+import { dailySeries, emailsSent, niceAxis, periodRange, topList } from "@/lib/stats";
 
 const NOW = new Date("2026-10-21T10:00:00Z");
 
@@ -51,12 +51,6 @@ describe("Toplista és konverzió", () => {
       { label: "facebook.com", visitors: 9, pageviews: 0 },
       { label: "Közvetlen", visitors: 5, pageviews: 0 },
     ]);
-  });
-
-  it("konverzió egy tizedesre, 0 látogatónál nincs", () => {
-    expect(conversion(3, 200)).toBe(1.5);
-    expect(conversion(1, 3)).toBe(33.3);
-    expect(conversion(5, 0)).toBe(null);
   });
 });
 
