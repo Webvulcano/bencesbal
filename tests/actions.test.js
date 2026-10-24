@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fakeDb } from "./fake-db";
 import { reg, ticket } from "./fixtures";
 
@@ -113,6 +113,31 @@ describe("Lemondás gomb", () => {
     await cancelRegistration(form("GYBB-0042"));
     await flush();
     expect(state.sent).toHaveLength(0);
+  });
+});
+
+describe("Titkos másolat (MAIL_BCC)", () => {
+  afterEach(() => delete process.env.MAIL_BCC);
+
+  it("fizetés- és lemondó email BCC-vel megy, a résztvevői jegyek nem", async () => {
+    process.env.MAIL_BCC = " szervezo@example.com, ,masik@example.com ";
+    state.db = fakeDb([family()]);
+    await markPaid(form("GYBB-0042"));
+    await cancelRegistration(form("GYBB-0042"));
+    await flush();
+    expect(state.sent.map((m) => [m.subject.split(" — ")[0], m.bcc])).toEqual([
+      ["Megérkezett az utalása", ["szervezo@example.com", "masik@example.com"]],
+      ["Belépőjegy", undefined],
+      ["Belépőjegy", undefined],
+      ["Jelentkezés törölve", ["szervezo@example.com", "masik@example.com"]],
+    ]);
+  });
+
+  it("üres / hiányzó MAIL_BCC → nincs másolat", async () => {
+    state.db = fakeDb([family()]);
+    await cancelRegistration(form("GYBB-0042"));
+    await flush();
+    expect(state.sent[0].bcc).toEqual([]);
   });
 });
 
