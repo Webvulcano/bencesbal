@@ -19,7 +19,7 @@ describe("fizetés-visszaigazoló (kapcsolattartónak)", () => {
     const m = renderPayment(reg([ticket(1, "Anna", "anna@example.com"), ticket(2, "Béla", "bela@example.com")]));
     expect(m.attachments.map((a) => a.content)).toEqual(["PDF:Anna"]);
     expect(m.text).toContain("Elektronikus belépőjegyét a mellékelt PDF-ben találja.");
-    expect(m.text).toContain("A többi résztvevő a saját email-címére kapja meg a belépőjegyét.");
+    expect(m.text).toContain("A többi résztvevő a saját e-mail-címére kapja meg a belépőjegyét.");
   });
 
   it("közös címen / email nélkül lévők jegye is csatolva, többes számú szöveggel", () => {

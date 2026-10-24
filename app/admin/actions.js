@@ -38,12 +38,12 @@ export async function cancelRegistration(formData) {
 }
 
 const GUEST_ERRORS = {
-  INVALID_CONTACT: "A kapcsolattartó neve kötelező.",
-  EMAIL_REQUIRED: "A kapcsolattartó email-címe kötelező.",
-  INVALID_EMAIL: "Hibás email-cím.",
-  ADDRESS_REQUIRED: "Papírjegyhez a teljes cím kötelező.",
-  INVALID_QTY: "Kérjük, válasszon legalább 1 jegyet.",
-  INVALID_COMPANION: "Minden résztvevő neve kötelező.",
+  INVALID_CONTACT: "Kérjük, adja meg a kapcsolattartó nevét.",
+  EMAIL_REQUIRED: "Kérjük, adja meg a kapcsolattartó e-mail-címét.",
+  INVALID_EMAIL: "Kérjük, adjon meg egy érvényes e-mail-címet.",
+  ADDRESS_REQUIRED: "Papírjegyhez kérjük, adja meg a teljes postai címet.",
+  INVALID_QTY: "Kérjük, válasszon legalább egy jegyet.",
+  INVALID_COMPANION: "Kérjük, adja meg minden résztvevő nevét.",
 };
 
 export async function createGuest(payload) {
@@ -51,9 +51,9 @@ export async function createGuest(payload) {
   const { data, error } = await getSupabaseAdmin().rpc("admin_create_registration", { payload });
   if (error) {
     const [code, arg] = error.message.split(":");
-    if (code === "SOLD_OUT") return { error: `Nincs elég szabad hely (${arg === "disz" ? "Díszterem" : "Különterem"}).` };
-    if (code === "BAD_FRIEND_CODE") return { error: `A(z) ${arg} barátkód nem létezik.` };
-    return { error: GUEST_ERRORS[code] ?? "Nem sikerült menteni." };
+    if (code === "SOLD_OUT") return { error: `Sajnos nincs elég szabad hely a(z) ${arg === "disz" ? "Díszteremben" : "Különteremben"}.` };
+    if (code === "BAD_FRIEND_CODE") return { error: `A(z) ${arg} barátkódot nem találjuk. Kérjük, ellenőrizze.` };
+    return { error: GUEST_ERRORS[code] ?? "Sajnos nem sikerült menteni. Kérjük, próbálja újra." };
   }
   revalidatePath("/admin", "layout");
   if (payload.markPaid) after(() => sendPaidEmails(data));
@@ -79,11 +79,11 @@ export async function setCapacity(_prev, formData) {
     .select("id, registrations!inner(status)", { count: "exact", head: true })
     .eq("hall_id", hallId)
     .neq("registrations.status", "cancelled");
-  if (countError) return { error: "Nem sikerült menteni." };
-  if (capacity < count) return { error: `Nem lehet kevesebb, mint a már foglalt ${count} hely.` };
+  if (countError) return { error: "Sajnos nem sikerült menteni. Kérjük, próbálja újra." };
+  if (capacity < count) return { error: `Kérjük, legalább ${count} főt adjon meg, ennyi hely már foglalt.` };
 
   const { error } = await db.from("halls").update({ capacity }).eq("id", hallId);
-  if (error) return { error: "Nem sikerült menteni." };
+  if (error) return { error: "Sajnos nem sikerült menteni. Kérjük, próbálja újra." };
   revalidatePath("/admin", "layout");
   return { ok: true };
 }

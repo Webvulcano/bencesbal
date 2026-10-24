@@ -55,11 +55,11 @@ export default async function AdminHome() {
         <Kpi label="Fizetésre vár" value={stats.pendingCount} sub={huf(stats.pendingAmount)} />
         <Kpi label="Fizetve" value={stats.paidCount} sub={huf(stats.paidAmount)} />
         <Kpi
-          label="Ma kiküldött email"
+          label="Ma kiküldött e-mail"
           value={stats.emails.today}
           sub={`utolsó 24 óra: ${stats.emails.last24h} / ~500`}
           warn={stats.emails.last24h >= EMAIL_WARN}
-          info="24 órán belül legfeljebb kb. 500 emailt tudunk kiküldeni. Ha a szám 400 fölé megy, kérjük, lehetőség szerint várjanak a fizetések visszaigazolásával („✓ Fizetve”), mert minden visszaigazolás emailt küld."
+          info="24 órán belül legfeljebb kb. 500 e-mailt tudunk kiküldeni. Ha a szám 400 fölé megy, kérjük, lehetőség szerint várjanak a fizetések visszaigazolásával („✓ Fizetve”), mert minden visszaigazolás e-mailt küld."
         />
       </div>
 

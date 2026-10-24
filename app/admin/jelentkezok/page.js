@@ -51,7 +51,7 @@ export default async function Jelentkezok({ searchParams }) {
       <form className="bg-white border border-line/70 rounded-lg p-3 mb-5 flex flex-wrap gap-2 items-end">
         <label className="flex-1 min-w-[200px]">
           <span className="filter-label">Keresés</span>
-          <input name="q" defaultValue={q} placeholder="Név, email, telefon, GYBB-kód" className="field py-2" />
+          <input name="q" defaultValue={q} placeholder="Név, e-mail, telefon, GYBB-kód" className="field py-2" />
         </label>
         <label>
           <span className="filter-label">Státusz</span>
@@ -122,15 +122,15 @@ export default async function Jelentkezok({ searchParams }) {
                 <span className="text-[11px] text-muted">{r.status === "paid" ? `fizetve ${dt(r.paidAt)}` : `jelentkezett ${dt(r.createdAt)}`}</span>
                 {r.confirmationSentAt && <span className="text-[11px] text-free" title={`Visszaigazoló elküldve: ${dt(r.confirmationSentAt)}`}>✉ visszaigazolva</span>}
                 {!r.confirmationSentAt && r.confirmationError && (
-                  <span className="text-[11px] font-bold text-sold" title={r.confirmationError}>⚠ email hiba</span>
+                  <span className="text-[11px] font-bold text-sold" title={r.confirmationError}>⚠ e-mail hiba</span>
                 )}
                 {r.paymentEmailSentAt && <span className="text-[11px] text-free" title={`Fizetés-visszaigazoló elküldve: ${dt(r.paymentEmailSentAt)}`}>✉ fizetés visszaigazolva</span>}
                 {!r.paymentEmailSentAt && r.paymentEmailError && (
-                  <span className="text-[11px] font-bold text-sold" title={r.paymentEmailError}>⚠ fizetés-email hiba</span>
+                  <span className="text-[11px] font-bold text-sold" title={r.paymentEmailError}>⚠ fizetési e-mail hiba</span>
                 )}
                 {r.cancellationEmailSentAt && <span className="text-[11px] text-muted" title={`Törlés-értesítő elküldve: ${dt(r.cancellationEmailSentAt)}`}>✉ törlés jelezve</span>}
                 {!r.cancellationEmailSentAt && r.cancellationEmailError && (
-                  <span className="text-[11px] font-bold text-sold" title={r.cancellationEmailError}>⚠ törlés-email hiba</span>
+                  <span className="text-[11px] font-bold text-sold" title={r.cancellationEmailError}>⚠ törlési e-mail hiba</span>
                 )}
               </div>
             </header>
@@ -141,7 +141,7 @@ export default async function Jelentkezok({ searchParams }) {
                   <tr>
                     <th className="px-4 py-2 font-semibold w-20">Jegyszám</th>
                     <th className="px-4 py-2 font-semibold">Név</th>
-                    <th className="px-4 py-2 font-semibold">Email</th>
+                    <th className="px-4 py-2 font-semibold">E-mail</th>
                     <th className="px-4 py-2 font-semibold">Jegy</th>
                     <th className="px-4 py-2 font-semibold">Terem</th>
                   </tr>
@@ -154,7 +154,7 @@ export default async function Jelentkezok({ searchParams }) {
                       <td className="px-4 py-2 text-muted break-all">
                         {m.email || "—"}
                         {m.ticketEmailSentAt && <span className="ml-1.5 text-[11px] text-free" title={`E-jegy elküldve: ${dt(m.ticketEmailSentAt)}`}>✉ jegy</span>}
-                        {!m.ticketEmailSentAt && m.ticketEmailError && <span className="ml-1.5 text-[11px] font-bold text-sold" title={m.ticketEmailError}>⚠ jegy-email hiba</span>}
+                        {!m.ticketEmailSentAt && m.ticketEmailError && <span className="ml-1.5 text-[11px] font-bold text-sold" title={m.ticketEmailError}>⚠ jegy e-mail hiba</span>}
                       </td>
                       <td className="px-4 py-2 whitespace-nowrap">{m.typeLabel}</td>
                       <td className="px-4 py-2 whitespace-nowrap">{m.hallLabel}</td>
@@ -174,7 +174,7 @@ export default async function Jelentkezok({ searchParams }) {
                     <ActionButton
                       action={markPaid}
                       ref_={r.ref}
-                      confirm={{ title: "Biztos kifizette?", body: `${r.ref} · ${r.contact.name} · ${huf(r.total)}\n\nEzt már nem lehet visszavonni.`, label: "Igen, fizetve" }}
+                      confirm={{ title: "Biztosan fizetettnek jelöli?", body: `${r.ref} · ${r.contact.name} · ${huf(r.total)}\n\nEzt már nem lehet visszavonni.`, label: "Igen, fizetve" }}
                       className="rounded-md bg-free text-white font-bold text-sm px-3.5 py-1.5 hover:brightness-110">
                       ✓ Fizetve
                     </ActionButton>

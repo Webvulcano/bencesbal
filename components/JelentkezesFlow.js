@@ -30,6 +30,13 @@ const STEP_TITLES = {
   fizetes: "Fizetés",
 };
 
+const ADDRESS_REQUIRED = {
+  zip: "Kérjük, adja meg az irányítószámot",
+  city: "Kérjük, adja meg a települést",
+  street: "Kérjük, adja meg az utcát",
+  no: "Kérjük, adja meg a házszámot",
+};
+
 const EMPTY = {
   qty: {},
   friendCodes: [""],
@@ -188,33 +195,33 @@ export default function JelentkezesFlow() {
 
   function validate() {
     const e = {};
-    if (step === "jegy" && count < 1) e.ticket = "Kérjük, válasszon legalább 1 jegyet";
+    if (step === "jegy" && count < 1) e.ticket = "Kérjük, válasszon legalább egy jegyet";
     if (step === "letszam") {
       f.friendCodes.forEach((c, i) => {
-        if (c && !CODE_RE.test(c)) e[`fc${i}`] = `A barátkód formátuma: ${REF_PREFIX}-1234`;
+        if (c && !CODE_RE.test(c)) e[`fc${i}`] = `Kérjük, a barátkódot ${REF_PREFIX}-1234 formában adja meg`;
       });
     }
     if (step === "kapcsolat") {
-      if (!f.contact.name.trim()) e.name = "Kötelező";
-      if (!EMAIL_RE.test(f.contact.email)) e.email = "Érvényes email kell";
-      if (!f.contact.phone.trim()) e.phone = "Kötelező";
-      else if (!isValidPhone(f.contact.phone)) e.phone = "Érvényes telefonszám kell, pl. +36 30 123 4567";
+      if (!f.contact.name.trim()) e.name = "Kérjük, adja meg a nevét";
+      if (!EMAIL_RE.test(f.contact.email)) e.email = "Kérjük, adjon meg egy érvényes e-mail-címet";
+      if (!f.contact.phone.trim()) e.phone = "Kérjük, adja meg a telefonszámát";
+      else if (!isValidPhone(f.contact.phone)) e.phone = "Kérjük, adjon meg egy érvényes telefonszámot, pl. +36 30 123 4567";
     }
     if (step === "lakcim") {
-      ["zip", "city", "street", "no"].forEach((k) => !f.address[k].trim() && (e[k] = "Kötelező"));
-      if (f.address.zip && !ZIP_RE.test(f.address.zip)) e.zip = "4 számjegy";
+      Object.entries(ADDRESS_REQUIRED).forEach(([k, msg]) => !f.address[k].trim() && (e[k] = msg));
+      if (f.address.zip && !ZIP_RE.test(f.address.zip)) e.zip = "Kérjük, adjon meg egy érvényes, négyjegyű irányítószámot";
     }
     if (step === "bences") {
-      if (!f.relation.type) e.relation = "Kérjük, válasszon egyet";
-      if (f.relation.type === "oregdiak" && (!f.relation.school || !f.relation.year)) e.relation = "Kérjük, adja meg az iskolát és az évfolyamot";
+      if (!f.relation.type) e.relation = "Kérjük, válassza ki, hogyan kapcsolódik közösségünkhöz";
+      if (f.relation.type === "oregdiak" && (!f.relation.school || !f.relation.year)) e.relation = "Kérjük, adja meg az iskolát és az érettségi évét";
       if (f.relation.type === "munkatars" && !f.relation.empCode.trim()) e.relation = "Kérjük, adja meg a dolgozói kódot";
     }
     if (step === "tarsak")
       f.companions.forEach((c, i) => {
-        if (!c.name.trim()) e[`c${i}n`] = "Név kell";
-        if (!EMAIL_RE.test(c.email)) e[`c${i}e`] = "Email kell";
+        if (!c.name.trim()) e[`c${i}n`] = "Kérjük, adja meg a résztvevő nevét";
+        if (!EMAIL_RE.test(c.email)) e[`c${i}e`] = "Kérjük, adjon meg egy érvényes e-mail-címet";
       });
-    if (step === "veglegesites" && !f.consent) e.consent = "Kötelező elfogadni";
+    if (step === "veglegesites" && !f.consent) e.consent = "A jelentkezéshez kérjük, fogadja el az adatkezelési szabályzatot";
     setErrors(e);
     return !Object.keys(e).length;
   }
@@ -244,12 +251,14 @@ export default function JelentkezesFlow() {
       const msg = res.error;
       if (msg.startsWith("SOLD_OUT:")) {
         const h = HALLS[msg.split(":")[1]];
-        setErrors({ submit: `Közben elfogyott a hely${h ? ` a(z) ${h.label}ben` : ""}. Kérjük, módosítsa a jegyeket.` });
+        setErrors({ submit: `Sajnáljuk, időközben elfogytak a szabad helyek${h ? ` a(z) ${h.label}ben` : ""}. Kérjük, módosítsa a jegyek számát vagy típusát.` });
         loadFree();
       } else if (msg.startsWith("BAD_FRIEND_CODE:")) {
-        setErrors({ submit: `A(z) ${msg.split(":")[1]} barátkód nem létezik. Kérjük, ellenőrizze, vagy törölje az Ültetés lépésnél.` });
+        setErrors({ submit: `A(z) ${msg.split(":")[1]} barátkódot nem találjuk. Kérjük, ellenőrizze, vagy törölje az Ültetés lépésnél.` });
+      } else if (msg === "REGISTRATION_CLOSED") {
+        setErrors({ submit: "A jelentkezés jelenleg nem érhető el. Köszönjük megértését!" });
       } else {
-        setErrors({ submit: "Nem sikerült elküldeni a jelentkezést. Kérjük, próbálja újra pár perc múlva." });
+        setErrors({ submit: "Sajnáljuk, a jelentkezést most nem sikerült elküldeni. Kérjük, próbálja újra néhány perc múlva." });
       }
       return;
     }
@@ -432,7 +441,7 @@ export default function JelentkezesFlow() {
                     + Újabb barátkód
                   </button>
                 )}
-                <span className="block text-[12.8px] font-semibold text-muted mt-1.5">Barátai közlemény-kódjai — így egy asztalhoz ültetjük Önöket.</span>
+                <span className="block text-[12.8px] font-semibold text-muted mt-1.5">Barátai kódja alapján egy asztalhoz ültetjük Önöket.</span>
               </div>
               <div className="mt-5">
                 <label htmlFor="seatingNote" className="font-bold">
@@ -455,7 +464,7 @@ export default function JelentkezesFlow() {
               <Field label="Név" required error={errors.name}>
                 <input className="field" autoComplete="name" aria-invalid={bad("name")} value={f.contact.name} onChange={(e) => set("contact.name", e.target.value)} />
               </Field>
-              <Field label="Email" required hint="visszaigazolások / fizetési információ miatt kötelező" error={errors.email}>
+              <Field label="E-mail" required hint="erre a címre küldjük a visszaigazolást és a fizetési tudnivalókat" error={errors.email}>
                 <input className="field" type="email" autoComplete="email" aria-invalid={bad("email")} value={f.contact.email} onChange={(e) => set("contact.email", e.target.value)} />
               </Field>
               <Field label="Telefon" required error={errors.phone}>
@@ -491,7 +500,7 @@ export default function JelentkezesFlow() {
           {step === "bences" && (
             <>
               <p className="label mb-3">
-                Hogy kapcsolódik bencés közösségünkhöz?<span className="text-bal-gold-dark"> *</span>
+                Hogyan kapcsolódik bencés közösségünkhöz?<span className="text-bal-gold-dark"> *</span>
               </p>
               <div className="space-y-2.5">
                 {RELATIONS.map((r) => (
@@ -507,7 +516,7 @@ export default function JelentkezesFlow() {
                     {SCHOOLS.map((s) => <option key={s}>{s}</option>)}
                   </select>
                   <select className="field" value={f.relation.year} onChange={(e) => set("relation.year", e.target.value)}>
-                    <option value="">Évfolyam</option>
+                    <option value="">Érettségi éve</option>
                     {YEARS.map((y) => <option key={y}>{y}</option>)}
                   </select>
                 </div>
@@ -523,7 +532,7 @@ export default function JelentkezesFlow() {
 
           {step === "tarsak" && (
             <>
-              <p className="text-muted text-sm mb-3">Kérjük, adja meg, kinek szól a többi jegy — a jegyet emailben küldjük el nekik.</p>
+              <p className="text-muted text-sm mb-3">Kérjük, adja meg, kinek szól a többi jegy — a jegyet e-mailben küldjük el nekik.</p>
               <div className="max-h-[calc(100dvh-290px)] overflow-y-auto overscroll-contain border-2 border-bal-border bg-white rounded-xl divide-y divide-bal-border/70">
                 <div className="flex gap-2.5 items-start px-3 py-2.5">
                   <span className="font-display font-bold text-bal-gold-dark text-xl w-6 pt-1.5 shrink-0">1.</span>
@@ -534,7 +543,7 @@ export default function JelentkezesFlow() {
                     </div>
                     <div className="grid sm:grid-cols-2 gap-2">
                       <input className="field disabled:bg-[#f4f4f4] disabled:text-muted disabled:cursor-not-allowed" aria-label="Kapcsolattartó neve" value={f.contact.name} disabled />
-                      <input className="field disabled:bg-[#f4f4f4] disabled:text-muted disabled:cursor-not-allowed" aria-label="Kapcsolattartó emailje" value={f.contact.email} disabled />
+                      <input className="field disabled:bg-[#f4f4f4] disabled:text-muted disabled:cursor-not-allowed" aria-label="Kapcsolattartó e-mail-címe" value={f.contact.email} disabled />
                     </div>
                   </div>
                 </div>
@@ -551,7 +560,7 @@ export default function JelentkezesFlow() {
                           {errors[`c${i}n`] && <span className="err">{errors[`c${i}n`]}</span>}
                         </div>
                         <div>
-                          <input className="field" type="email" placeholder="Email" aria-invalid={bad(`c${i}e`)} value={c.email} onChange={(e) => set(`companions.${i}.email`, e.target.value)} />
+                          <input className="field" type="email" placeholder="E-mail" aria-invalid={bad(`c${i}e`)} value={c.email} onChange={(e) => set(`companions.${i}.email`, e.target.value)} />
                           {errors[`c${i}e`] && <span className="err">{errors[`c${i}e`]}</span>}
                         </div>
                       </div>
@@ -619,7 +628,7 @@ export default function JelentkezesFlow() {
           {step === "fizetes" && (
             <>
               <div className="text-center mb-3">
-                <h1 className="font-display font-bold text-bal-gold-dark text-2xl sm:text-3xl leading-tight">Köszönjük, {f.contact.name}!</h1>
+                <h1 className="font-display font-bold text-bal-gold-dark text-2xl sm:text-3xl leading-tight">Köszönjük jelentkezését, {f.contact.name}!</h1>
                 <p className="text-muted text-[15px] mt-1">
                   Kérjük, szíveskedjék átutalni a végösszeget az alábbi adatokkal.
                 </p>

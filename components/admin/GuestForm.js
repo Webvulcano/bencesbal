@@ -73,17 +73,17 @@ export default function GuestForm({ types, halls }) {
   function validate() {
     const e = {};
     if (count < 1) e.qty = "Kérjük, válasszon legalább 1 jegyet.";
-    if (!f.contact.name.trim()) e.name = "Kötelező";
-    if (!f.contact.email.trim()) e.email = "Kötelező";
-    else if (!EMAIL_RE.test(f.contact.email)) e.email = "Hibás email";
-    if (f.contact.phone && !isValidPhone(f.contact.phone)) e.phone = "Hibás telefonszám";
+    if (!f.contact.name.trim()) e.name = "Kérjük, adja meg a nevet";
+    if (!f.contact.email.trim()) e.email = "Kérjük, adja meg az e-mail-címet";
+    else if (!EMAIL_RE.test(f.contact.email)) e.email = "Kérjük, adjon meg egy érvényes e-mail-címet";
+    if (f.contact.phone && !isValidPhone(f.contact.phone)) e.phone = "Kérjük, adjon meg egy érvényes telefonszámot";
     f.companions.forEach((c, i) => {
-      if (!c.name.trim()) e[`c${i}n`] = "Név kell";
-      if (c.email && !EMAIL_RE.test(c.email)) e[`c${i}e`] = "Hibás email";
+      if (!c.name.trim()) e[`c${i}n`] = "Kérjük, adja meg a nevet";
+      if (c.email && !EMAIL_RE.test(c.email)) e[`c${i}e`] = "Kérjük, adjon meg egy érvényes e-mail-címet";
     });
-    if (f.paperTicket) ["zip", "city", "street", "no"].forEach((k) => !f.address[k].trim() && (e[k] = "Kötelező"));
-    if (f.address.zip && !ZIP_RE.test(f.address.zip)) e.zip = "4 számjegy";
-    f.friendCodes.forEach((c, i) => c && !/^[A-Z]+-\d{4}$/.test(c) && (e[`fc${i}`] = `Formátum: ${REF_PREFIX}-1234`));
+    if (f.paperTicket) ["zip", "city", "street", "no"].forEach((k) => !f.address[k].trim() && (e[k] = "Kérjük, töltse ki"));
+    if (f.address.zip && !ZIP_RE.test(f.address.zip)) e.zip = "Kérjük, adjon meg egy négyjegyű irányítószámot";
+    f.friendCodes.forEach((c, i) => c && !/^[A-Z]+-\d{4}$/.test(c) && (e[`fc${i}`] = `Kérjük, ${REF_PREFIX}-1234 formában adja meg`));
     setErrors(e);
     return !Object.keys(e).length;
   }
@@ -152,10 +152,10 @@ export default function GuestForm({ types, halls }) {
         <Section title="Kapcsolattartó">
           <div className="grid sm:grid-cols-3 gap-3">
             <Input label="Név" required error={errors.name} value={f.contact.name} onChange={(e) => setIn("contact", "name", e.target.value)} />
-            <Input label="Email" type="email" required error={errors.email} value={f.contact.email} onChange={(e) => setIn("contact", "email", e.target.value)} />
+            <Input label="E-mail" type="email" required error={errors.email} value={f.contact.email} onChange={(e) => setIn("contact", "email", e.target.value)} />
             <Input label="Telefon" type="tel" inputMode="tel" error={errors.phone} value={f.contact.phone} onChange={(e) => setIn("contact", "phone", cleanPhone(e.target.value))} />
           </div>
-          <p className="text-xs text-muted mt-2">Ide megy minden email. Az email nélküli résztvevők jegyét is a kapcsolattartó kapja meg.</p>
+          <p className="text-xs text-muted mt-2">Minden e-mail erre a címre érkezik. Az e-mail-cím nélküli résztvevők jegyét is a kapcsolattartó kapja meg.</p>
         </Section>
       </div>
 
@@ -175,7 +175,7 @@ export default function GuestForm({ types, halls }) {
                     onChange={(e) => set("companions", f.companions.map((x, j) => (j === i ? { ...x, name: e.target.value } : x)))}
                   />
                   <Input
-                    label="Email"
+                    label="E-mail"
                     type="email"
                     error={errors[`c${i}e`]}
                     value={c.email}

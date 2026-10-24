@@ -36,7 +36,7 @@ function ConfirmDialog({ confirm, onCancel, onOk }) {
         className="w-full max-w-md bg-white rounded-lg shadow-xl border-t-4 border-gold p-6"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 id="cd-title" className="font-serif text-2xl text-navy">{c.title || "Biztos vagy benne?"}</h2>
+        <h2 id="cd-title" className="font-serif text-2xl text-navy">{c.title || "Biztosan folytatja?"}</h2>
         {c.body && <p className="mt-3 text-[15px] text-black/80 whitespace-pre-line">{c.body}</p>}
         {c.requireText && (
           <label className="block mt-4 text-sm">

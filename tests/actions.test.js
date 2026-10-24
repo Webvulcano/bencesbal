@@ -121,7 +121,7 @@ describe("Kézi vendég felvétele", () => {
 
   it("email nélkül → hibaüzenet", async () => {
     state.db = fakeDb([]);
-    expect(await createGuest(payload({ contact: { name: "Vendég", email: "" } }))).toEqual({ error: "A kapcsolattartó email-címe kötelező." });
+    expect(await createGuest(payload({ contact: { name: "Vendég", email: "" } }))).toEqual({ error: "Kérjük, adja meg a kapcsolattartó e-mail-címét." });
   });
 
   it("rögtön fizetettként → kimennek az emailek, email nélküli kísérő jegye a kapcsolattartónál", async () => {

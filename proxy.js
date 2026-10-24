@@ -26,7 +26,7 @@ async function adminGate(request, pathname) {
   const { data } = await supabase.auth.getClaims();
   if (isAdminClaims(data?.claims)) return response;
 
-  if (request.headers.has("next-action")) return new NextResponse("Nincs jogosultság.", { status: 401 });
+  if (request.headers.has("next-action")) return new NextResponse("Ehhez nincs jogosultsága.", { status: 401 });
   return NextResponse.redirect(new URL("/admin/belepes", request.url));
 }
 
@@ -40,7 +40,7 @@ export async function proxy(request) {
 
   // Block server actions (the registration submit) outright.
   if (request.headers.has("next-action")) {
-    return new NextResponse("A jelentkezés még nem nyílt meg.", { status: 403 });
+    return new NextResponse("A jelentkezés még nem nyílt meg. Köszönjük türelmét!", { status: 403 });
   }
 
   if (pathname === "/") {

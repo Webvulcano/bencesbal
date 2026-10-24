@@ -82,7 +82,7 @@ export default function CapacityForm({ hallId, label, capacity, taken }) {
                 {state?.error && <p className="mt-2 text-sold font-semibold text-sm">{state.error}</p>}
                 {value !== "" && invalid && (
                   <p className="mt-2 text-sold font-semibold text-sm">
-                    {next < taken ? `Legalább ${taken} kell (ennyi a foglalt hely).` : "Kérjük, adjon meg egy egész számot (max. 2000)."}
+                    {next < taken ? `Kérjük, legalább ${taken} főt adjon meg (ennyi hely már foglalt).` : "Kérjük, adjon meg egy egész számot (max. 2000)."}
                   </p>
                 )}
                 <div className="mt-6 flex justify-end gap-2">
