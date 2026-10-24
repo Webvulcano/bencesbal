@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 const huf = (n) => new Intl.NumberFormat("hu-HU").format(n) + " Ft";
 
 // Gmail allows ~500 recipients per rolling 24 h; warn well before that.
-const EMAIL_WARN = 10; // TEMP: piros allapot teszt, vissza 400-ra
+const EMAIL_WARN = 400;
 
 // CSS-only tooltip: hover on desktop, tap (focus) on mobile. Spans the card (positioned by Kpi), so it never leaves the screen.
 function Info({ text }) {

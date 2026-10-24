@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { track } from "@vercel/analytics";
 import { supabase } from "@/lib/supabase";
 import { submitRegistration } from "@/app/(jelentkezes)/actions";
+import { cleanHouseNo, cleanPhone, cleanZip, isValidPhone, ZIP_RE } from "@/lib/input-filters";
 import { bankRows, HALLS, isLatePrice, LATE_PRICE_LABEL, memo, priceOf, REF_PREFIX, RELATIONS, SCHOOLS, TICKET_TYPES } from "@/lib/constants";
 
 const huf = (n) => new Intl.NumberFormat("hu-HU").format(n) + " Ft";
@@ -197,8 +198,12 @@ export default function JelentkezesFlow() {
       if (!f.contact.name.trim()) e.name = "Kötelező";
       if (!EMAIL_RE.test(f.contact.email)) e.email = "Érvényes email kell";
       if (!f.contact.phone.trim()) e.phone = "Kötelező";
+      else if (!isValidPhone(f.contact.phone)) e.phone = "Érvényes telefonszám kell, pl. +36 30 123 4567";
     }
-    if (step === "lakcim") ["zip", "city", "street", "no"].forEach((k) => !f.address[k].trim() && (e[k] = "Kötelező"));
+    if (step === "lakcim") {
+      ["zip", "city", "street", "no"].forEach((k) => !f.address[k].trim() && (e[k] = "Kötelező"));
+      if (f.address.zip && !ZIP_RE.test(f.address.zip)) e.zip = "4 számjegy";
+    }
     if (step === "bences") {
       if (!f.relation.type) e.relation = "Kérjük, válasszon egyet";
       if (f.relation.type === "oregdiak" && (!f.relation.school || !f.relation.year)) e.relation = "Kérjük, adja meg az iskolát és az évfolyamot";
@@ -454,7 +459,7 @@ export default function JelentkezesFlow() {
                 <input className="field" type="email" autoComplete="email" aria-invalid={bad("email")} value={f.contact.email} onChange={(e) => set("contact.email", e.target.value)} />
               </Field>
               <Field label="Telefon" required error={errors.phone}>
-                <input className="field" type="tel" autoComplete="tel" aria-invalid={bad("phone")} value={f.contact.phone} onChange={(e) => set("contact.phone", e.target.value)} />
+                <input className="field" type="tel" inputMode="tel" autoComplete="tel" placeholder="+36 30 123 4567" aria-invalid={bad("phone")} value={f.contact.phone} onChange={(e) => set("contact.phone", cleanPhone(e.target.value))} />
               </Field>
             </>
           )}
@@ -463,7 +468,7 @@ export default function JelentkezesFlow() {
             <>
               <div className="grid grid-cols-[96px_1fr] gap-x-3">
                 <Field label="Irsz." required error={errors.zip}>
-                  <input className="field" inputMode="numeric" maxLength={4} autoComplete="postal-code" aria-invalid={bad("zip")} value={f.address.zip} onChange={(e) => set("address.zip", e.target.value)} />
+                  <input className="field" inputMode="numeric" maxLength={4} autoComplete="postal-code" aria-invalid={bad("zip")} value={f.address.zip} onChange={(e) => set("address.zip", cleanZip(e.target.value))} />
                 </Field>
                 <Field label="Település" required error={errors.city}>
                   <input className="field" autoComplete="address-level2" aria-invalid={bad("city")} value={f.address.city} onChange={(e) => set("address.city", e.target.value)} />
@@ -474,7 +479,7 @@ export default function JelentkezesFlow() {
               </Field>
               <div className="grid grid-cols-2 gap-x-3">
                 <Field label="Házszám" required error={errors.no}>
-                  <input className="field" aria-invalid={bad("no")} value={f.address.no} onChange={(e) => set("address.no", e.target.value)} />
+                  <input className="field" placeholder="pl. 12/A" aria-invalid={bad("no")} value={f.address.no} onChange={(e) => set("address.no", cleanHouseNo(e.target.value))} />
                 </Field>
                 <Field label="Emelet, ajtó">
                   <input className="field" value={f.address.floor} onChange={(e) => set("address.floor", e.target.value)} />

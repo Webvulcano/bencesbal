@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { createGuest } from "@/app/admin/actions";
 import { GUEST_CATEGORIES, REF_PREFIX } from "@/lib/constants";
+import { cleanHouseNo, cleanPhone, cleanZip, isValidPhone, ZIP_RE } from "@/lib/input-filters";
 
 const huf = (n) => new Intl.NumberFormat("hu-HU").format(n) + " Ft";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -75,11 +76,13 @@ export default function GuestForm({ types, halls }) {
     if (!f.contact.name.trim()) e.name = "Kötelező";
     if (!f.contact.email.trim()) e.email = "Kötelező";
     else if (!EMAIL_RE.test(f.contact.email)) e.email = "Hibás email";
+    if (f.contact.phone && !isValidPhone(f.contact.phone)) e.phone = "Hibás telefonszám";
     f.companions.forEach((c, i) => {
       if (!c.name.trim()) e[`c${i}n`] = "Név kell";
       if (c.email && !EMAIL_RE.test(c.email)) e[`c${i}e`] = "Hibás email";
     });
     if (f.paperTicket) ["zip", "city", "street", "no"].forEach((k) => !f.address[k].trim() && (e[k] = "Kötelező"));
+    if (f.address.zip && !ZIP_RE.test(f.address.zip)) e.zip = "4 számjegy";
     f.friendCodes.forEach((c, i) => c && !/^[A-Z]+-\d{4}$/.test(c) && (e[`fc${i}`] = `Formátum: ${REF_PREFIX}-1234`));
     setErrors(e);
     return !Object.keys(e).length;
@@ -150,7 +153,7 @@ export default function GuestForm({ types, halls }) {
           <div className="grid sm:grid-cols-3 gap-3">
             <Input label="Név" required error={errors.name} value={f.contact.name} onChange={(e) => setIn("contact", "name", e.target.value)} />
             <Input label="Email" type="email" required error={errors.email} value={f.contact.email} onChange={(e) => setIn("contact", "email", e.target.value)} />
-            <Input label="Telefon" type="tel" value={f.contact.phone} onChange={(e) => setIn("contact", "phone", e.target.value)} />
+            <Input label="Telefon" type="tel" inputMode="tel" error={errors.phone} value={f.contact.phone} onChange={(e) => setIn("contact", "phone", cleanPhone(e.target.value))} />
           </div>
           <p className="text-xs text-muted mt-2">Ide megy minden email. Az email nélküli résztvevők jegyét is a kapcsolattartó kapja meg.</p>
         </Section>
@@ -186,12 +189,12 @@ export default function GuestForm({ types, halls }) {
 
         <Section title="Cím">
           <div className="grid grid-cols-[100px_1fr] gap-3">
-            <Input label="Irsz." required={f.paperTicket} error={errors.zip} inputMode="numeric" maxLength={4} value={f.address.zip} onChange={(e) => setIn("address", "zip", e.target.value)} />
+            <Input label="Irsz." required={f.paperTicket} error={errors.zip} inputMode="numeric" maxLength={4} value={f.address.zip} onChange={(e) => setIn("address", "zip", cleanZip(e.target.value))} />
             <Input label="Település" required={f.paperTicket} error={errors.city} value={f.address.city} onChange={(e) => setIn("address", "city", e.target.value)} />
           </div>
           <div className="grid grid-cols-[1fr_100px_120px] gap-3 mt-3">
             <Input label="Utca, tér" required={f.paperTicket} error={errors.street} value={f.address.street} onChange={(e) => setIn("address", "street", e.target.value)} />
-            <Input label="Házszám" required={f.paperTicket} error={errors.no} value={f.address.no} onChange={(e) => setIn("address", "no", e.target.value)} />
+            <Input label="Házszám" required={f.paperTicket} error={errors.no} value={f.address.no} onChange={(e) => setIn("address", "no", cleanHouseNo(e.target.value))} />
             <Input label="Emelet, ajtó" value={f.address.floor} onChange={(e) => setIn("address", "floor", e.target.value)} />
           </div>
         </Section>

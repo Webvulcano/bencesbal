@@ -112,7 +112,6 @@ export default async function Statisztika({ searchParams }) {
       {ok && (
         <div className="grid md:grid-cols-2 gap-3 mt-6">
           <Top title="Honnan jöttek" rows={topList(visitors.referrers, "referrerHostname", "Közvetlen / ismeretlen")} />
-          <Top title="Kampány (UTM forrás)" rows={topList(visitors.utm, "utmSource", "Nincs UTM")} />
           <Top title="Oldalak" rows={topList(visitors.pages, "requestPath")} />
           <Top title="Eszköz" rows={topList(visitors.devices, "deviceType").map((r) => ({ ...r, label: DEVICES[r.label] ?? r.label }))} />
           <Top title="Ország" rows={topList(visitors.countries, "country").map((r) => ({ ...r, label: country(r.label) }))} />
