@@ -3,6 +3,7 @@ import StatsChart from "@/components/admin/StatsChart";
 import { requireAdmin } from "@/lib/admin-auth";
 import { dailySeries, PERIODS, periodRange, topList } from "@/lib/stats";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
+import { parseOpeningTime } from "@/lib/registration-open";
 import { ANALYTICS_ERRORS, loadVisitorStats } from "@/lib/vercel-analytics";
 
 export const dynamic = "force-dynamic";
@@ -45,7 +46,7 @@ function Top({ title, rows }) {
 
 export default async function Statisztika({ searchParams }) {
   await requireAdmin();
-  const range = periodRange(Number((await searchParams).napok));
+  const range = periodRange((await searchParams).napok, new Date(), parseOpeningTime(process.env.JELENTKEZES_NYITAS));
 
   const [visitors, regsRes] = await Promise.all([
     loadVisitorStats(range),
@@ -54,17 +55,16 @@ export default async function Statisztika({ searchParams }) {
       .select("created_at, paid_at, total, tickets(count)")
       .neq("status", "cancelled")
       // Registered or paid in the period (an older registration can be paid now).
-      .or(`created_at.gte.${range.since}T00:00:00Z,paid_at.gte.${range.since}T00:00:00Z`),
+      .or(`created_at.gte.${range.from},paid_at.gte.${range.from}`),
   ]);
   if (regsRes.error) throw new Error(regsRes.error.message);
-  const from = `${range.since}T00:00:00Z`;
-  const inPeriod = (ts) => ts && new Date(ts) >= new Date(from);
+  const inPeriod = (ts) => ts && new Date(ts) >= new Date(range.from);
   const regs = regsRes.data.filter((r) => inPeriod(r.created_at));
   const paid = regsRes.data.filter((r) => inPeriod(r.paid_at));
   const tickets = regs.reduce((a, r) => a + (r.tickets?.[0]?.count ?? 0), 0);
   const paidAmount = paid.reduce((a, r) => a + (r.total ?? 0), 0);
   const ok = !visitors.error;
-  const series = dailySeries(range.dates, ok ? visitors.daily : [], regsRes.data);
+  const series = dailySeries(range.dates, ok ? visitors.daily : [], regsRes.data.map((r) => ({ ...r, created_at: inPeriod(r.created_at) ? r.created_at : null, paid_at: inPeriod(r.paid_at) ? r.paid_at : null })));
 
   return (
     <>
@@ -75,10 +75,10 @@ export default async function Statisztika({ searchParams }) {
             <Link
               key={p}
               href={`/admin/statisztika?napok=${p}`}
-              aria-current={p === range.days ? "page" : undefined}
-              className={`px-3 py-1.5 rounded text-sm font-bold ${p === range.days ? "bg-navy-2 text-white" : "text-navy-2 hover:bg-gold-soft"}`}
+              aria-current={p === range.key ? "page" : undefined}
+              className={`px-3 py-1.5 rounded text-sm font-bold ${p === range.key ? "bg-navy-2 text-white" : "text-navy-2 hover:bg-gold-soft"}`}
             >
-              {p} nap
+              {p === "teljes" ? "Teljes időszak" : `${p} nap`}
             </Link>
           ))}
         </nav>

@@ -1,18 +1,42 @@
 import { describe, expect, it } from "vitest";
-import { dailySeries, emailsSent, niceAxis, periodRange, topList } from "@/lib/stats";
+import { dailySeries, dateSlices, emailsSent, niceAxis, periodRange, topList } from "@/lib/stats";
 
 const NOW = new Date("2026-10-21T10:00:00Z");
 
 describe("Időszak", () => {
-  it("7 / 28 / 90 nap, a mai nappal bezárólag", () => {
-    expect(periodRange(7, NOW)).toMatchObject({ days: 7, since: "2026-10-15", until: "2026-10-21" });
-    expect(periodRange(28, NOW).dates).toHaveLength(28);
-    expect(periodRange(90, NOW).since).toBe("2026-07-24");
+  it("7 / 28 nap, a mai nappal bezárólag; az URL-ből szövegként jön", () => {
+    expect(periodRange("7", NOW)).toMatchObject({ key: 7, since: "2026-10-15", until: "2026-10-21" });
+    expect(periodRange("28", NOW).dates).toHaveLength(28);
+  });
+
+  it("teljes időszak: a nyitás (UTC) napjától máig; nyitás nélkül 28 nap", () => {
+    const open = Date.parse("2026-10-25T00:00:00+02:00"); // UTC: 10-24 22:00
+    expect(periodRange("teljes", new Date("2027-02-07T10:00:00Z"), open)).toMatchObject({ key: "teljes", since: "2026-10-24", until: "2027-02-07" });
+    expect(periodRange("teljes", NOW, open).dates).toEqual(["2026-10-21"]);
+    expect(periodRange("teljes", NOW).dates).toHaveLength(28);
+  });
+
+  it("nyitás előtti napok egyik nézetben sincsenek; a nyitás napján a nyitás pillanatától számol", () => {
+    const open = Date.parse("2026-10-24T22:00:00Z");
+    const r = periodRange("28", new Date("2026-10-30T10:00:00Z"), open);
+    expect(r).toMatchObject({ since: "2026-10-24", until: "2026-10-30", from: "2026-10-24T22:00:00.000Z" });
+    expect(r.dates).toHaveLength(7);
+    expect(periodRange("7", new Date("2026-12-01T10:00:00Z"), open).from).toBe("2026-11-25T00:00:00.000Z");
+    expect(periodRange("7", NOW, open)).toMatchObject({ dates: ["2026-10-21"], from: "2026-10-24T22:00:00.000Z" });
   });
 
   it("ismeretlen érték → 7 nap", () => {
-    expect(periodRange(NaN, NOW).days).toBe(7);
-    expect(periodRange(1000, NOW).days).toBe(7);
+    expect(periodRange(undefined, NOW).key).toBe(7);
+    expect(periodRange("90", NOW).key).toBe(7);
+  });
+
+  it("napi lekérdezés max. 60 napos szeletekben", () => {
+    const { dates } = periodRange("teljes", new Date("2027-02-07T10:00:00Z"), Date.parse("2026-10-24T22:00:00Z"));
+    expect(dateSlices(dates)).toEqual([
+      { since: "2026-10-24", until: "2026-12-22" },
+      { since: "2026-12-23", until: "2027-02-07" },
+    ]);
+    expect(dateSlices(["2026-10-21"])).toEqual([{ since: "2026-10-21", until: "2026-10-21" }]);
   });
 });
 
