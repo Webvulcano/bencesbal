@@ -21,6 +21,7 @@ vi.mock("@/lib/mailer", () => ({
 vi.mock("@/lib/pdf/ticket", () => ({ buildTicketsPdf: (r) => `PDF:${r.tickets.map((t) => t.holder_name).join(",")}` }));
 
 const { markPaid, cancelRegistration, createGuest, setPrinted, setCapacity } = await import("@/app/admin/actions");
+const { submitRegistration } = await import("@/app/(jelentkezes)/actions");
 
 const form = (ref) => {
   const f = new FormData();
@@ -117,25 +118,33 @@ describe("Lemondás gomb", () => {
 });
 
 describe("Titkos másolat (MAIL_BCC)", () => {
-  afterEach(() => delete process.env.MAIL_BCC);
+  afterEach(() => {
+    delete process.env.MAIL_BCC;
+    delete process.env.JELENTKEZES_NYITVA;
+  });
 
-  it("fizetés- és lemondó email BCC-vel megy, a résztvevői jegyek nem", async () => {
+  it("csak a jelentkezés-visszaigazolás megy BCC-vel, a fizetés / jegy / lemondás nem", async () => {
     process.env.MAIL_BCC = " szervezo@example.com, ,masik@example.com ";
+    process.env.JELENTKEZES_NYITVA = "true";
     state.db = fakeDb([family()]);
+    await submitRegistration({});
+    await flush();
     await markPaid(form("GYBB-0042"));
     await cancelRegistration(form("GYBB-0042"));
     await flush();
     expect(state.sent.map((m) => [m.subject.split(" — ")[0], m.bcc])).toEqual([
-      ["Megérkezett az utalása", ["szervezo@example.com", "masik@example.com"]],
+      [expect.any(String), ["szervezo@example.com", "masik@example.com"]],
+      ["Megérkezett az utalása", undefined],
       ["Belépőjegy", undefined],
       ["Belépőjegy", undefined],
-      ["Jelentkezés törölve", ["szervezo@example.com", "masik@example.com"]],
+      ["Jelentkezés törölve", undefined],
     ]);
   });
 
   it("üres / hiányzó MAIL_BCC → nincs másolat", async () => {
+    process.env.JELENTKEZES_NYITVA = "true";
     state.db = fakeDb([family()]);
-    await cancelRegistration(form("GYBB-0042"));
+    await submitRegistration({});
     await flush();
     expect(state.sent[0].bcc).toEqual([]);
   });

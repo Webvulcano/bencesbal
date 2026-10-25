@@ -33,6 +33,7 @@ export function fakeDb(regs) {
     calls.rpc.push({ fn, args });
     if (fn === "mark_paid") byRef.get(args.p_ref).status = "paid";
     if (fn === "cancel_registration") byRef.get(args.p_ref).status = "cancelled";
+    if (fn === "create_registration") return Promise.resolve({ data: "GYBB-0042", error: null });
     if (fn === "admin_create_registration") {
       if (!args.payload.contact?.email) return Promise.resolve({ data: null, error: { message: "EMAIL_REQUIRED" } });
       return Promise.resolve({ data: "GYBB-0099", error: null });

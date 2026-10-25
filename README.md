@@ -43,7 +43,7 @@ A levelek a `noreply@gyoribencesbal.hu` fiókból mennek, a tárhely (atw.hu) le
 | `SMTP_PASS` | a postafiók jelszava (cPanel → Email Accounts) |
 | `MAIL_FROM_NAME` | `Győri Bencés Bál` |
 | `MAIL_REPLY_TO` | `gyoribencesbal@gmail.com` (üresen is ez) |
-| `MAIL_BCC` | titkos másolat a jelentkezés / fizetés / törlés visszaigazolásról, vesszővel elválasztva (pl. `a@x.hu, b@y.hu`). Üres → nincs másolat. A résztvevőknek külön küldött jegyekről nem megy másolat. |
+| `MAIL_BCC` | titkos másolat a jelentkezés-visszaigazolásról (csak az első levélről), vesszővel elválasztva (pl. `a@x.hu, b@y.hu`). Üres → nincs másolat. A fizetés / törlés / jegy emailekről nem megy másolat. |
 
 Vercelen Production env-be kell felvenni, utána redeploy. A régi `GMAIL_USER` / `GMAIL_APP_PASSWORD` törölhető.
 
