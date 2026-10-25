@@ -1,7 +1,8 @@
 import Image from "next/image";
+import Link from "next/link";
 import { Inter, Playfair_Display } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
-import { EVENT } from "@/lib/constants";
+import { BANK, EVENT, LEGAL } from "@/lib/constants";
 
 // Same fonts as gyoribencesbal.hu; loaded only here so the admin keeps Cormorant/Optima.
 const playfair = Playfair_Display({
@@ -38,6 +39,23 @@ export default function JelentkezesLayout({ children }) {
       />
 
       <div className="flex-1 min-h-0 flex flex-col relative">{children}</div>
+      <footer className="shrink-0 bg-white border-t border-bal-border/60 relative z-10">
+        <div className="max-w-5xl mx-auto px-4 py-1.5 flex flex-wrap justify-center gap-x-3 text-xs text-muted">
+          <span>© 2026–2027 {BANK.beneficiary}</span>
+          <Link href="/impresszum" className="underline hover:text-bal-gold-ink">
+            Impresszum
+          </Link>
+          <a href={LEGAL.privacyUrl} target="_blank" rel="noopener" className="underline hover:text-bal-gold-ink">
+            Adatkezelési tájékoztató
+          </a>
+          <span>
+            Készítette:{" "}
+            <a href="https://webvulcano.hu" target="_blank" rel="noopener" className="underline hover:text-bal-gold-ink">
+              webvulcano.hu
+            </a>
+          </span>
+        </div>
+      </footer>
       <Analytics />
     </div>
   );

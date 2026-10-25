@@ -46,6 +46,7 @@ export async function proxy(request) {
   if (pathname === "/") {
     return NextResponse.rewrite(new URL("/elozetes/index.html", request.url));
   }
+  if (pathname === "/impresszum") return NextResponse.next();
   if (pathname === "/jegyarak") {
     return NextResponse.rewrite(new URL("/elozetes/jegyarak/index.html", request.url));
   }

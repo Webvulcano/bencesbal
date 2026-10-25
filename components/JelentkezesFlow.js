@@ -4,7 +4,7 @@ import { track } from "@vercel/analytics";
 import { supabase } from "@/lib/supabase";
 import { submitRegistration } from "@/app/(jelentkezes)/actions";
 import { cleanHouseNo, cleanPhone, cleanZip, isValidPhone, ZIP_RE } from "@/lib/input-filters";
-import { bankRows, HALLS, isLatePrice, LATE_PRICE_LABEL, memo, priceOf, REF_PREFIX, RELATIONS, SCHOOLS, TICKET_TYPES } from "@/lib/constants";
+import { bankRows, HALLS, isLatePrice, LATE_PRICE_LABEL, LEGAL, memo, priceOf, REF_PREFIX, RELATIONS, SCHOOLS, TICKET_TYPES } from "@/lib/constants";
 
 const huf = (n) => new Intl.NumberFormat("hu-HU").format(n) + " Ft";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -16,8 +16,6 @@ const normalizeCode = (v) => {
   const digits = v.replace(/\D/g, "").slice(0, 4);
   return digits ? `${REF_PREFIX}-${digits}` : "";
 };
-
-const PRIVACY_URL = "https://jelentkezes.gyoribencesbal.hu/adatkezelesi.pdf";
 
 const STEP_TITLES = {
   jegy: "Jegytípus",
@@ -609,7 +607,7 @@ export default function JelentkezesFlow() {
                 <div>
                   <Check checked={f.consent} onChange={(e) => set("consent", e.target.checked)}>
                     Az{" "}
-                    <a href={PRIVACY_URL} target="_blank" rel="noopener" className="text-bal-gold-ink underline">
+                    <a href={LEGAL.privacyUrl} target="_blank" rel="noopener" className="text-bal-gold-ink underline">
                       adatkezelési szabályzatban
                     </a>{" "}
                     foglaltakat elolvastam, megértettem és elfogadom.<span className="text-bal-gold-dark"> *</span>
