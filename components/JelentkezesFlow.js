@@ -43,6 +43,7 @@ const EMPTY = {
   address: { zip: "", city: "", street: "", no: "", floor: "" },
   relation: { type: "", school: "", year: "", empCode: "" },
   companions: [],
+  contactType: "",
   paperTicket: true,
   consent: false,
 };
@@ -166,7 +167,10 @@ export default function JelentkezesFlow() {
 
   const count = Object.values(f.qty).reduce((a, b) => a + b, 0);
   const total = PUBLIC_TYPES.reduce((sum, t) => sum + (f.qty[t.id] || 0) * priceOf(t), 0);
-  const seats = PUBLIC_TYPES.flatMap((t) => Array(f.qty[t.id] || 0).fill(t));
+  // The contact picks which of the chosen types is theirs; their type goes first (same order as create_registration).
+  const picked = PUBLIC_TYPES.filter((t) => f.qty[t.id]);
+  const contactType = picked.some((t) => t.id === f.contactType) ? f.contactType : picked[0]?.id;
+  const seats = [...picked].sort((a, b) => (b.id === contactType) - (a.id === contactType)).flatMap((t) => Array(f.qty[t.id]).fill(t));
   const lines = PUBLIC_TYPES.filter((t) => f.qty[t.id]).map((t) => `${f.qty[t.id]} × ${t.label}`);
 
   const steps = ["jegy", "letszam", "kapcsolat", "lakcim", "bences", ...(count > 1 ? ["tarsak"] : []), "veglegesites", "fizetes"];
@@ -236,6 +240,7 @@ export default function JelentkezesFlow() {
         address: f.address,
         relation: f.relation,
         companions: f.companions,
+        contactType,
         friendCodes: f.friendCodes.filter(Boolean),
         seatingNote: f.seatingNote.trim(),
         paperTicket: f.paperTicket,
@@ -530,13 +535,28 @@ export default function JelentkezesFlow() {
 
           {step === "tarsak" && (
             <>
-              <p className="text-muted text-sm mb-3">Kérjük, adja meg, kinek szól a többi jegy — a jegyet e-mailben küldjük el nekik.</p>
-              <div className="max-h-[calc(100dvh-290px)] overflow-y-auto overscroll-contain border-2 border-bal-border bg-white rounded-xl divide-y divide-bal-border/70">
+              <p className="text-muted text-sm mb-3">Kérjük, adja meg, kinek szól a többi jegy — a jegyet e-mailben küldjük el nekik.{picked.length > 1 && " Az 1. sorban kiválaszthatja, melyik jegytípus az Öné."}</p>
+              <div className="border-2 border-bal-border bg-white rounded-xl divide-y divide-bal-border/70">
                 <div className="flex gap-2.5 items-start px-3 py-2.5">
                   <span className="font-display font-bold text-bal-gold-dark text-xl w-6 pt-1.5 shrink-0">1.</span>
                   <div className="flex-1 min-w-0">
-                    <div className="mb-1.5 flex items-center gap-2">
-                      <TicketTag t={seats[0]} />
+                    <div className="mb-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
+                      {picked.length > 1 ? (
+                        <select
+                          className="field w-auto max-w-full py-1 text-[13px] font-bold"
+                          aria-label="Kapcsolattartó jegytípusa"
+                          value={contactType}
+                          onChange={(e) => set("contactType", e.target.value)}
+                        >
+                          {picked.map((t) => (
+                            <option key={t.id} value={t.id}>
+                              {t.label}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <TicketTag t={seats[0]} />
+                      )}
                       <span className="text-[12px] text-muted">kapcsolattartó</span>
                     </div>
                     <div className="grid sm:grid-cols-2 gap-2">
