@@ -16,3 +16,10 @@ export async function submitRegistration(payload) {
   after(() => sendRegistrationEmail(ref, renderConfirmation, "confirmation", { bcc: bccList() }));
   return { ref };
 }
+
+// Staff code check for the form (the code itself never reaches the client). The DB checks it again on submit.
+export async function checkStaffCode(code) {
+  const { data, error } = await getSupabaseAdmin().from("staff_discount").select("percent, max_tickets").eq("code", String(code ?? "").trim()).maybeSingle();
+  if (error || !data) return null;
+  return { percent: data.percent, maxTickets: data.max_tickets };
+}

@@ -116,6 +116,7 @@ export default async function Jelentkezok({ searchParams }) {
               <div className="text-right">
                 <p className="font-bold tabular-nums">{huf(r.total)}</p>
                 <p className="text-xs text-muted">{r.members.length} fő · {r.hallLabels.join(", ")}</p>
+                {r.discount > 0 && <p className="text-xs font-bold text-free">Munkatársi kedvezmény −{huf(r.discount)}</p>}
               </div>
               <div className="flex flex-col items-end gap-1.5">
                 <span className={`text-xs font-bold border rounded-full px-2.5 py-0.5 ${STATUS[r.status].cls}`}>{STATUS[r.status].label}</span>
@@ -156,7 +157,10 @@ export default async function Jelentkezok({ searchParams }) {
                         {m.ticketEmailSentAt && <span className="ml-1.5 text-[11px] text-free" title={`E-jegy elküldve: ${dt(m.ticketEmailSentAt)}`}>✉ jegy</span>}
                         {!m.ticketEmailSentAt && m.ticketEmailError && <span className="ml-1.5 text-[11px] font-bold text-sold" title={m.ticketEmailError}>⚠ jegy e-mail hiba</span>}
                       </td>
-                      <td className="px-4 py-2 whitespace-nowrap">{m.typeLabel}</td>
+                      <td className="px-4 py-2 whitespace-nowrap">
+                        {m.typeLabel}
+                        {m.discountPct && <span className="ml-1.5 text-[11px] font-bold text-free">−{m.discountPct}%</span>}
+                      </td>
                       <td className="px-4 py-2 whitespace-nowrap">{m.hallLabel}</td>
                     </tr>
                   ))}

@@ -70,4 +70,21 @@ describe("jelentkezés-visszaigazoló", () => {
     expect(m.text).toContain("GYBB-0042");
     expect(m.text).toMatch(/Végösszeg: 160\s000 Ft/);
   });
+
+  it("munkatársi kedvezmény: jelöli a kedvezményes jegyeket és a kedvezmény összegét", () => {
+    const t = [
+      ticket(1, "Anna", "anna@example.com", { ticket_type_id: "disz", price: 25000, discount_pct: 50 }),
+      ticket(2, "Béla", "bela@example.com", { ticket_type_id: "disz", price: 50000 }),
+    ];
+    const m = renderConfirmation(reg(t, { total: 75000, discount: 25000 }));
+    expect(m.text).toContain("1. résztvevő: Anna, anna@example.com (50% kedvezmény)");
+    expect(m.text).toContain("2. résztvevő: Béla, bela@example.com\n");
+    expect(m.text).toMatch(/Munkatársi kedvezmény: −25\s000 Ft/);
+    expect(m.html).toContain("Munkatársi kedvezmény");
+  });
+
+  it("kedvezmény nélkül nincs kedvezmény-sor", () => {
+    const m = renderConfirmation(reg([ticket(1, "Anna", "anna@example.com")]));
+    expect(m.text).not.toContain("kedvezmény");
+  });
 });

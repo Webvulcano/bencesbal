@@ -2,9 +2,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { track } from "@vercel/analytics";
 import { supabase } from "@/lib/supabase";
-import { submitRegistration } from "@/app/(jelentkezes)/actions";
+import { checkStaffCode, submitRegistration } from "@/app/(jelentkezes)/actions";
 import { cleanHouseNo, cleanPhone, cleanZip, isValidPhone, ZIP_RE } from "@/lib/input-filters";
-import { bankRows, HALLS, isLatePrice, LATE_PRICE_LABEL, LEGAL, memo, priceOf, REF_PREFIX, RELATIONS, SCHOOLS, TICKET_TYPES } from "@/lib/constants";
+import { bankRows, discountedPrice, HALLS, isLatePrice, LATE_PRICE_LABEL, LEGAL, memo, priceOf, REF_PREFIX, RELATIONS, SCHOOLS, TICKET_TYPES } from "@/lib/constants";
 
 const huf = (n) => new Intl.NumberFormat("hu-HU").format(n) + " Ft";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -44,6 +44,7 @@ const EMPTY = {
   relation: { type: "", school: "", year: "", empCode: "" },
   companions: [],
   contactType: "",
+  discountSeats: null, // staff: seat indexes picked for the discount; null → the first eligible ones
   paperTicket: true,
   consent: false,
 };
@@ -143,6 +144,7 @@ export default function JelentkezesFlow() {
   const [hall, setHall] = useState("disz");
   const [f, setF] = useState(EMPTY);
   const [errors, setErrors] = useState({});
+  const [staff, setStaff] = useState(null); // checked staff code: { code, percent, maxTickets }
   const [ref, setRef] = useState("");
   const [copied, setCopied] = useState("");
   const [helpOpen, setHelpOpen] = useState(false);
@@ -166,11 +168,33 @@ export default function JelentkezesFlow() {
   }, [applySeats]);
 
   const count = Object.values(f.qty).reduce((a, b) => a + b, 0);
-  const total = PUBLIC_TYPES.reduce((sum, t) => sum + (f.qty[t.id] || 0) * priceOf(t), 0);
   // The contact picks which of the chosen types is theirs; their type goes first (same order as create_registration).
   const picked = PUBLIC_TYPES.filter((t) => f.qty[t.id]);
   const contactType = picked.some((t) => t.id === f.contactType) ? f.contactType : picked[0]?.id;
   const seats = [...picked].sort((a, b) => (b.id === contactType) - (a.id === contactType)).flatMap((t) => Array(f.qty[t.id]).fill(t));
+  // Staff discount (code checked on the "bences" step): up to maxTickets eligible seats; with more eligible seats they pick.
+  const staffOn = f.relation.type === "munkatars" && staff?.code === f.relation.empCode.trim();
+  const eligible = staffOn ? seats.flatMap((t, i) => (t.staffDiscount ? [i] : [])) : [];
+  const canPick = staffOn && eligible.length > staff.maxTickets;
+  const discSeats = canPick && f.discountSeats ? f.discountSeats.filter((i) => eligible.includes(i)) : eligible.slice(0, staff?.maxTickets);
+  const seatPrice = (i) => (discSeats.includes(i) ? discountedPrice(priceOf(seats[i]), staff.percent) : priceOf(seats[i]));
+  const fullTotal = seats.reduce((sum, t) => sum + priceOf(t), 0);
+  const total = seats.reduce((sum, _, i) => sum + seatPrice(i), 0);
+  const discount = fullTotal - total;
+  // Tarsak step: checkbox when the staff member picks, otherwise just a tag on the discounted seats.
+  const discountMark = (i) => {
+    if (!eligible.includes(i)) return null;
+    const on = discSeats.includes(i);
+    if (!canPick) return on ? <span className="text-[12px] font-bold text-free">−{staff.percent}%</span> : null;
+    return (
+      <label className="inline-flex items-center gap-1.5 text-[12px] font-bold text-bal-gold-ink cursor-pointer">
+        <input type="checkbox" className="accent-bal-gold-dark" aria-label={`${i + 1}. jegy: ${staff.percent}% kedvezmény`} checked={on} disabled={!on && discSeats.length >= staff.maxTickets} onChange={() => toggleDisc(i)} />
+        {staff.percent}% kedvezmény
+      </label>
+    );
+  };
+  const toggleDisc = (i) =>
+    set("discountSeats", discSeats.includes(i) ? discSeats.filter((j) => j !== i) : discSeats.length < staff.maxTickets ? [...discSeats, i] : discSeats);
   const lines = PUBLIC_TYPES.filter((t) => f.qty[t.id]).map((t) => `${f.qty[t.id]} × ${t.label}`);
 
   const steps = ["jegy", "letszam", "kapcsolat", "lakcim", "bences", ...(count > 1 ? ["tarsak"] : []), "veglegesites", "fizetes"];
@@ -192,7 +216,7 @@ export default function JelentkezesFlow() {
       const qty = { ...prev.qty, [id]: Math.max(0, n) };
       const c = Object.values(qty).reduce((a, b) => a + b, 0);
       const companions = Array.from({ length: Math.max(0, c - 1) }, (_, i) => prev.companions[i] || { name: "", email: "" });
-      return { ...prev, qty, companions };
+      return { ...prev, qty, companions, discountSeats: null };
     });
 
   function validate() {
@@ -241,6 +265,7 @@ export default function JelentkezesFlow() {
         relation: f.relation,
         companions: f.companions,
         contactType,
+        ...(staffOn && { discountSeats: discSeats }),
         friendCodes: f.friendCodes.filter(Boolean),
         seatingNote: f.seatingNote.trim(),
         paperTicket: f.paperTicket,
@@ -258,6 +283,8 @@ export default function JelentkezesFlow() {
         loadFree();
       } else if (msg.startsWith("BAD_FRIEND_CODE:")) {
         setErrors({ submit: `A(z) ${msg.split(":")[1]} barátkódot nem találjuk. Kérjük, ellenőrizze, vagy törölje az Ültetés lépésnél.` });
+      } else if (msg === "BAD_EMP_CODE") {
+        setErrors({ submit: "A dolgozói kód nem érvényes. Kérjük, ellenőrizze a Bencés kapcsolat lépésnél." });
       } else if (msg === "REGISTRATION_CLOSED") {
         setErrors({ submit: "A jelentkezés jelenleg nem érhető el. Köszönjük megértését!" });
       } else {
@@ -271,9 +298,20 @@ export default function JelentkezesFlow() {
     setStepIdx(stepIdx + 1);
   }
 
-  function next() {
+  async function next() {
     if (!validate()) return;
     if (step === "veglegesites") return submit();
+    if (step === "bences" && f.relation.type === "munkatars" && !staffOn) {
+      setSubmitting(true);
+      const code = f.relation.empCode.trim();
+      const res = await checkStaffCode(code).catch(() => undefined);
+      setSubmitting(false);
+      if (!res) {
+        setErrors({ relation: res === null ? "A megadott dolgozói kód nem érvényes. Kérjük, ellenőrizze." : "Sajnáljuk, a kódot most nem sikerült ellenőrizni. Kérjük, próbálja újra." });
+        return;
+      }
+      setStaff({ code, ...res });
+    }
     setStepIdx(stepIdx + 1);
   }
 
@@ -284,6 +322,7 @@ export default function JelentkezesFlow() {
 
   function restart() {
     setF(EMPTY);
+    setStaff(null);
     setErrors({});
     setRef("");
     setCopied("");
@@ -527,6 +566,13 @@ export default function JelentkezesFlow() {
               {f.relation.type === "munkatars" && (
                 <div className="mt-4">
                   <input className="field" placeholder="Dolgozói kód" value={f.relation.empCode} onChange={(e) => set("relation.empCode", e.target.value)} />
+                  {staffOn ? (
+                    <span className="hint text-free font-semibold">
+                      ✔ Érvényes kód: {staff.maxTickets} dísztermi vagy különtermi jegy {staff.percent}% kedvezménnyel
+                    </span>
+                  ) : (
+                    <span className="hint">Érvényes dolgozói kóddal Ön és kísérője kedvezményes dísztermi vagy különtermi jegyet kap.</span>
+                  )}
                 </div>
               )}
               {errors.relation && <span className="err mt-2">{errors.relation}</span>}
@@ -536,6 +582,11 @@ export default function JelentkezesFlow() {
           {step === "tarsak" && (
             <>
               <p className="text-muted text-sm mb-3">Kérjük, adja meg, kinek szól a többi jegy — a jegyet e-mailben küldjük el nekik.{picked.length > 1 && " Az 1. sorban kiválaszthatja, melyik jegytípus az Öné."}</p>
+              {canPick && (
+                <p className="text-sm mb-3 rounded-md border border-bal-gold bg-bal-subtle px-3 py-2">
+                  <b>Munkatársi kedvezmény:</b> kérjük, jelölje be, melyik {staff.maxTickets} jegyre kéri a {staff.percent}% kedvezményt ({discSeats.length} / {staff.maxTickets} kiválasztva).
+                </p>
+              )}
               <div className="border-2 border-bal-border bg-white rounded-xl divide-y divide-bal-border/70">
                 <div className="flex gap-2.5 items-start px-3 py-2.5">
                   <span className="font-display font-bold text-bal-gold-dark text-xl w-6 pt-1.5 shrink-0">1.</span>
@@ -546,7 +597,7 @@ export default function JelentkezesFlow() {
                           className="field w-auto max-w-full py-1 text-[13px] font-bold"
                           aria-label="Kapcsolattartó jegytípusa"
                           value={contactType}
-                          onChange={(e) => set("contactType", e.target.value)}
+                          onChange={(e) => setF((prev) => ({ ...prev, contactType: e.target.value, discountSeats: null }))}
                         >
                           {picked.map((t) => (
                             <option key={t.id} value={t.id}>
@@ -558,6 +609,7 @@ export default function JelentkezesFlow() {
                         <TicketTag t={seats[0]} />
                       )}
                       <span className="text-[12px] text-muted">kapcsolattartó</span>
+                      {discountMark(0)}
                     </div>
                     <div className="grid sm:grid-cols-2 gap-2">
                       <input className="field disabled:bg-[#f4f4f4] disabled:text-muted disabled:cursor-not-allowed" aria-label="Kapcsolattartó neve" value={f.contact.name} disabled />
@@ -569,8 +621,9 @@ export default function JelentkezesFlow() {
                   <div key={i} className="flex gap-2.5 items-start px-3 py-2.5">
                     <span className="font-display font-bold text-bal-gold-dark text-xl w-6 pt-1.5 shrink-0">{i + 2}.</span>
                     <div className="flex-1 min-w-0">
-                      <div className="mb-1.5">
+                      <div className="mb-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
                         <TicketTag t={seats[i + 1]} />
+                        {discountMark(i + 1)}
                       </div>
                       <div className="grid sm:grid-cols-2 gap-2">
                         <div>
@@ -596,6 +649,7 @@ export default function JelentkezesFlow() {
                   ["Jegy", lines.join("\n")],
                   ["Kapcsolattartó", `${f.contact.name}\n${f.contact.email}\n${f.contact.phone}`],
                   ["Cím", `${f.address.zip} ${f.address.city}, ${f.address.street} ${f.address.no}${f.address.floor ? ", " + f.address.floor : ""}`],
+                  ...(discount > 0 ? [["Kedvezmény", `Munkatársi, ${discSeats.length} jegy ${staff.percent}%: −${huf(discount)}`]] : []),
                   ...(f.friendCodes.some(Boolean) ? [["Barátkód", f.friendCodes.filter(Boolean).join(", ")]] : []),
                   ...(f.seatingNote.trim() ? [["Ültetés", f.seatingNote.trim()]] : []),
                 ].map(([k, v]) => (
@@ -616,6 +670,7 @@ export default function JelentkezesFlow() {
                           </span>
                           <span className="block text-[13px] text-muted break-words">
                             {c.email} · {seats[i]?.label}
+                            {discSeats.includes(i) && ` · ${staff.percent}% kedvezmény`}
                           </span>
                         </div>
                       ))}
