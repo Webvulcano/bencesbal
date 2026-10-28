@@ -45,7 +45,12 @@ A levelek a `noreply@gyoribencesbal.hu` fiókból mennek, a tárhely (atw.hu) le
 | `MAIL_REPLY_TO` | `gyoribencesbal@gmail.com` (üresen is ez) |
 | `MAIL_BCC` | titkos másolat a jelentkezés-visszaigazolásról (csak az első levélről), vesszővel elválasztva (pl. `a@x.hu, b@y.hu`). Üres → nincs másolat. A fizetés / törlés / jegy emailekről nem megy másolat. |
 
-Vercelen Production env-be kell felvenni, utána redeploy. A régi `GMAIL_USER` / `GMAIL_APP_PASSWORD` törölhető.
+| `GMAIL_USER` | Gmail fallback fiók (`tesztnn0@gmail.com`) |
+| `GMAIL_APP_PASSWORD` | a Gmail fiók app jelszava |
+
+**Gmail fallback:** a Hotmail/Outlook nem kézbesíti a noreply@ leveleit, ezért csak a `gmail.com` / `googlemail.com` címzettek kapják a noreply@-ról, mindenki más a `GMAIL_USER` fiókból (`lib/mailer.js` → `pickSender`). Ha a két `GMAIL_*` közül bármelyik üres → minden a noreply@-ról megy. Gmail limit: kb. 500 levél/nap.
+
+Vercelen Production env-be kell felvenni, utána redeploy.
 
 ## Admin belépés (Google)
 
